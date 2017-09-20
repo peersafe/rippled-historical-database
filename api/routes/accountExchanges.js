@@ -110,17 +110,10 @@ AccountExchanges = function (req, res, next) {
       binary: (/true/i).test(req.query.binary) ? true : false,
       minSequence: req.query.min_sequence,
       maxSequence: req.query.max_sequence,
-      marker: req.query.marker,
-      limit: req.query.limit || 100,
+      marker: '',
+      limit: 1000000,
       descending: false
     };
-
-    if (isNaN(options.limit)) {
-      options.limit = 100;
-
-    } else if (options.limit > 100) {
-      options.limit = 100;
-    }
 
     // query by date
     options.start = smoment(req.query.start || 0);
@@ -154,7 +147,13 @@ AccountExchanges = function (req, res, next) {
         } else {
           resp.rows.forEach(function(ts) {
             var offerCancel = {
+              base_amount: '',
+              counter_amount: '',
+              rate: '',
+              base_currency: '',
+              base_issuer: '',
               buyer : ts.tx.Account,
+              counter_currency: '',
               executed_time : ts.date,
               ledger_index : ts.ledger_index,
               offer_sequence : ts.tx.OfferSequence,
