@@ -154,7 +154,7 @@ AccountExchanges = function (req, res, next) {
               base_issuer: '',
               buyer : ts.tx.Account,
               counter_currency: '',
-              executed_time : ts.date,
+              executed_time : ts.date.replace('+00:00','Z'),
               ledger_index : ts.ledger_index,
               offer_sequence : ts.tx.OfferSequence,
               provider : '',
