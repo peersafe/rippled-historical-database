@@ -175,27 +175,31 @@ AccountExchanges = function (req, res, next) {
                }
             });
 
-            if (!isEmptyObject(offerNode)) {
-              var takerPays = offerNode.FinalFields.TakerPays;
-              var takerGets = offerNode.FinalFields.TakerGets;
-
-              if (isObject(takerGets)){
-                offerCancel.base_amount=takerGets.value;
-                offerCancel.base_currency = takerGets.currency;
-                offerCancel.base_issuer = takerGets.issuer;
-              }else{
-                offerCancel.base_amount= (parseFloat(takerGets)/1000000).toString();
-                offerCancel.base_currency = 'XRP';
-              }
-
-              if (isObject(takerPays)){
-                offerCancel.counter_amount = takerPays.value;
-                offerCancel.counter_currency = takerPays.currency;
-              }else{
-                offerCancel.counter_amount = (parseFloat(takerPays)/1000000).toString();
-                offerCancel.counter_currency = 'XRP';
-              }
+            if (isEmptyObject(offerNode)) {
+              return;
             }
+
+           
+            var takerPays = offerNode.FinalFields.TakerPays;
+            var takerGets = offerNode.FinalFields.TakerGets;
+
+            if (isObject(takerGets)){
+              offerCancel.base_amount=takerGets.value;
+              offerCancel.base_currency = takerGets.currency;
+              offerCancel.base_issuer = takerGets.issuer;
+            }else{
+              offerCancel.base_amount= (parseFloat(takerGets)/1000000).toString();
+              offerCancel.base_currency = 'XRP';
+            }
+
+            if (isObject(takerPays)){
+              offerCancel.counter_amount = takerPays.value;
+              offerCancel.counter_currency = takerPays.currency;
+            }else{
+              offerCancel.counter_amount = (parseFloat(takerPays)/1000000).toString();
+              offerCancel.counter_currency = 'XRP';
+            }
+            
 
             offerCancel.rate = (parseFloat(offerCancel.counter_amount)/parseFloat(offerCancel.base_amount)).toPrecision(8);
 
