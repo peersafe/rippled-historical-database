@@ -70,9 +70,12 @@ docker-compose up -d hbase
 ```
 
 4、启动V2 data 服务
+
+```
 (1)创建表格，node import/createTables
 (2)实时导入ledger, 开启新终端， node import/live
 (3)npm start
+```
  
 ## 青云环境配置
 
