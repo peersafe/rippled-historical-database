@@ -39,7 +39,18 @@ AccountExchanges = function (req, res, next) {
           delete ex.rowkey;
         });
 
-        exchanges.rows = exchanges.rows.concat(offerCancel);
+        // do cut
+        latestTime = exchanges.rows[0].executed_time;
+        var newOfferCancel = [];
+
+        offerCancel.forEach(function(of) {
+          if (of.executed_time <= latestTime) {
+            newOfferCancel.push(of);
+          }
+          delete of.rowkey;
+        });
+
+        exchanges.rows = exchanges.rows.concat(newOfferCancel);
         exchanges.rows.sort(dateCompare('executed_time'));
         exchanges.rows = exchanges.rows.slice(0,req.query.limit);
 
