@@ -31,24 +31,38 @@ AccountExchanges = function (req, res, next) {
         errorResponse(err);
 
       } else {
-        exchanges.rows.forEach(function(ex) {
-          ex.executed_time = smoment(parseInt(ex.executed_time)).format();
-          ex.base_amount = ex.base_amount.toString();
-          ex.counter_amount = ex.counter_amount.toString();
-          ex.rate = ex.rate.toPrecision(8);
-          delete ex.rowkey;
-        });
+        if (exchanges.length == 0 || exchanges.rows.length == 0){
+            exchanges.rows = [];
+            successResponse(exchanges);
+            return ;
+        }
 
-        // do cut
-        latestTime = exchanges.rows[0].executed_time;
-        var newOfferCancel = [];
+        if (exchanges.rows.length) {
+          exchanges.rows.forEach(function(ex) {
+            ex.executed_time = smoment(parseInt(ex.executed_time)).format();
+            ex.base_amount = ex.base_amount.toString();
+            ex.counter_amount = ex.counter_amount.toString();
+            ex.rate = ex.rate.toPrecision(8);
+            delete ex.rowkey;
+          });
 
-        offerCancel.forEach(function(of) {
-          if (of.executed_time <= latestTime) {
-            newOfferCancel.push(of);
-          }
-          delete of.rowkey;
-        });
+          // do cut
+          var latestTime = exchanges.rows[0].executed_time;
+          var newOfferCancel = [];
+
+          if (typeof(req.query.marker)!="undefined" || req.query.marker === null){
+            offerCancel.forEach(function(of) {
+              if (of.executed_time <= latestTime) {
+                newOfferCancel.push(of);
+              }
+              
+              delete of.rowkey;
+            });
+          }else{
+            newOfferCancel = offerCancel;
+          } 
+        }
+
 
         exchanges.rows = exchanges.rows.concat(newOfferCancel);
         exchanges.rows.sort(dateCompare('executed_time'));
@@ -156,6 +170,11 @@ AccountExchanges = function (req, res, next) {
           // errorResponse(err);
           console.log(err);
         } else {
+          if (resp.length == 0 || resp.rows.length == 0){
+            resolve(offerCancelRecord);
+            return ;
+          }
+         
           resp.rows.forEach(function(ts) {
             var offerCancel = {
               base_amount: '',
