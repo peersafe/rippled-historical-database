@@ -12,16 +12,16 @@ function normalize(req, res) {
   var options = {
     date: smoment(req.query.date),
     amount: Number(req.query.amount),
-    currency: (req.query.currency || 'XRP').toUpperCase(),
+    currency: (req.query.currency || 'ZXC').toUpperCase(),
     issuer: req.query.issuer || '',
-    exchange_currency: (req.query.exchange_currency || 'XRP').toUpperCase(),
+    exchange_currency: (req.query.exchange_currency || 'ZXC').toUpperCase(),
     exchange_issuer: req.query.exchange_issuer || '',
     strict: (/false/i).test(req.query.strict) ? false : true
   };
 
-  // conversion to XRP
-  function getXRPrate() {
-    if (options.currency === 'XRP') {
+  // conversion to ZXC
+  function getZXCrate() {
+    if (options.currency === 'ZXC') {
       return Promise.resolve(1);
     } else {
       return hbase.getExchangeRate({
@@ -37,7 +37,7 @@ function normalize(req, res) {
 
   // conversion to exchange currency
   function getExchangeRate() {
-    if (options.exchange_currency === 'XRP') {
+    if (options.exchange_currency === 'ZXC') {
       return Promise.resolve(1);
     } else {
       return hbase.getExchangeRate({
@@ -93,16 +93,16 @@ function normalize(req, res) {
   } else if (!options.currency) {
     errorResponse({error: 'currency is required', code: 400});
     return;
-  } else if (options.currency === 'XRP' && options.issuer) {
-    errorResponse({error: 'XRP cannot have an issuer', code: 400});
+  } else if (options.currency === 'ZXC' && options.issuer) {
+    errorResponse({error: 'ZXC cannot have an issuer', code: 400});
     return;
-  } else if (options.currency !== 'XRP' && !options.issuer) {
+  } else if (options.currency !== 'ZXC' && !options.issuer) {
     errorResponse({error: 'issuer is required', code: 400});
     return;
-  } else if (options.exchange_currency === 'XRP' && options.exchange_issuer) {
-    errorResponse({error: 'XRP cannot have an issuer', code: 400});
+  } else if (options.exchange_currency === 'ZXC' && options.exchange_issuer) {
+    errorResponse({error: 'ZXC cannot have an issuer', code: 400});
     return;
-  } else if (options.exchange_currency !== 'XRP' && !options.exchange_issuer) {
+  } else if (options.exchange_currency !== 'ZXC' && !options.exchange_issuer) {
     errorResponse({error: 'issuer is required', code: 400});
     return;
   }
@@ -123,7 +123,7 @@ function normalize(req, res) {
   }
 
   Promise.all([
-    getXRPrate(),
+    getZXCrate(),
     getExchangeRate()
   ])
   .nodeify(function(err, resp) {

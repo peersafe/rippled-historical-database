@@ -29,7 +29,7 @@ var livePeriods = [
 
 function getMetric(metric, req, res) {
   var exchange = {
-    currency: (req.query.exchange_currency || 'XRP').toUpperCase(),
+    currency: (req.query.exchange_currency || 'ZXC').toUpperCase(),
     issuer: req.query.exchange_issuer
   }
 
@@ -148,21 +148,21 @@ function getMetric(metric, req, res) {
     options.limit = 1000
   }
 
-  if (exchange.currency !== 'XRP' && !exchange.issuer) {
+  if (exchange.currency !== 'ZXC' && !exchange.issuer) {
     errorResponse({
       error: 'exchange currency must have an issuer',
       code: 400
     })
     return
 
-  } else if (exchange.currency === 'XRP' && exchange.issuer) {
+  } else if (exchange.currency === 'ZXC' && exchange.issuer) {
     errorResponse({
-      error: 'XRP cannot have an issuer',
+      error: 'ZXC cannot have an issuer',
       code: 400
     })
     return
 
-  } else if (exchange.currency !== 'XRP') {
+  } else if (exchange.currency !== 'ZXC') {
     options.exchange = exchange
   }
 

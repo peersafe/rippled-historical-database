@@ -64,16 +64,16 @@ function getExchangeRate(req, res) {
   } else if (!options.counter.currency) {
     errorResponse({error: 'counter currency is required', code: 400});
     return;
-  } else if (options.base.currency === 'XRP' && options.base.issuer) {
-    errorResponse({error: 'XRP cannot have an issuer', code: 400});
+  } else if (options.base.currency === 'ZXC' && options.base.issuer) {
+    errorResponse({error: 'ZXC cannot have an issuer', code: 400});
     return;
-  } else if (options.counter.currency === 'XRP' && options.counter.issuer) {
-    errorResponse({error: 'XRP cannot have an issuer', code: 400});
+  } else if (options.counter.currency === 'ZXC' && options.counter.issuer) {
+    errorResponse({error: 'ZXC cannot have an issuer', code: 400});
     return;
-  } else if (options.base.currency !== 'XRP' && !options.base.issuer) {
+  } else if (options.base.currency !== 'ZXC' && !options.base.issuer) {
     errorResponse({error: 'base issuer is required', code: 400});
     return;
-  } else if (options.counter.currency !== 'XRP' && !options.counter.issuer) {
+  } else if (options.counter.currency !== 'ZXC' && !options.counter.issuer) {
     errorResponse({error: 'counter issuer is required', code: 400});
     return;
   }

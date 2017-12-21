@@ -219,7 +219,7 @@ AccountExchanges = function (req, res, next) {
               offerCancel.base_issuer = takerGets.issuer;
             }else{
               offerCancel.base_amount= (parseFloat(takerGets)/1000000).toString();
-              offerCancel.base_currency = 'XRP';
+              offerCancel.base_currency = 'ZXC';
             }
 
             if (isObject(takerPays)){
@@ -227,7 +227,7 @@ AccountExchanges = function (req, res, next) {
               offerCancel.counter_currency = takerPays.currency;
             }else{
               offerCancel.counter_amount = (parseFloat(takerPays)/1000000).toString();
-              offerCancel.counter_currency = 'XRP';
+              offerCancel.counter_currency = 'ZXC';
             }
             
 

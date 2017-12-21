@@ -46,7 +46,7 @@ var getPayments = function (req, res, next) {
     return;
 
   } else if (options.currency &&
-             options.currency !== 'XRP' &&
+             options.currency !== 'ZXC' &&
             !options.issuer) {
     errorResponse({error: 'issuer is required', code: 400});
     return;

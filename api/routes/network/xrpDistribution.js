@@ -103,7 +103,7 @@ function getXrpDistribution(req, res) {
       resp.rows.forEach(function(r, i) {
         resp.rows[i] = utils.flattenJSON(r);
       });
-      res.csv(resp.rows, 'XRP-distribution.csv');
+      res.csv(resp.rows, 'ZXC-distribution.csv');
 
     // json
     } else {
