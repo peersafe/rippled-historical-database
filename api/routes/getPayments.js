@@ -5,7 +5,7 @@ var log = new Logger({scope : 'payments'});
 var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
 var intervals = ['day', 'week', 'month'];
-var validator = require('ripple-address-codec');
+var validator = require('chainsql-address-codec');
 var hbase;
 
 var getPayments = function (req, res, next) {

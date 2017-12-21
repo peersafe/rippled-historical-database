@@ -10,7 +10,7 @@ var Routes = require('./routes')
 var map = require('./apiMap')
 var json2csv = require('nice-json2csv')
 var favicon = require('serve-favicon')
-var ripple = require('ripple-lib')
+var ripple = require('chainsql-lib')
 
 /**
  * cacheControl
