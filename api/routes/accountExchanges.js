@@ -66,7 +66,7 @@ AccountExchanges = function (req, res, next) {
 
         exchanges.rows = exchanges.rows.concat(newOfferCancel);
         exchanges.rows.sort(dateCompare('executed_time'));
-        exchanges.rows = exchanges.rows.slice(0,req.query.limit);
+        // exchanges.rows = exchanges.rows.slice(0,req.query.limit);
 
         successResponse(exchanges);
       }
