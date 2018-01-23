@@ -37,6 +37,9 @@ AccountExchanges = function (req, res, next) {
             return ;
         }
 
+        // console.log("++++++++++++length of offercancel=",offerCancel.length)
+        // console.log("++++++++++++length of account exchanges=",exchanges.rows.length)
+
         if (exchanges.rows.length) {
           exchanges.rows.forEach(function(ex) {
             ex.executed_time = smoment(parseInt(ex.executed_time)).format();
@@ -130,6 +133,8 @@ AccountExchanges = function (req, res, next) {
   function offerCancelOptions(req) {
     var options = {
       account: req.params.address,
+      base: req.params.base,
+      counter: req.params.counter,
       type: 'OfferCancel',
       result: '',
       binary: (/true/i).test(req.query.binary) ? true : false,
@@ -164,6 +169,8 @@ AccountExchanges = function (req, res, next) {
     return new Promise(function (resolve, reject) {
       var offerCancelRecord = [];
       var options = offerCancelOptions(req);
+
+      // console.log("+++++++++++ options=",options)
 
       hbase.getAccountTransactions(options, function(err, resp) {
         if (err) {
@@ -225,9 +232,18 @@ AccountExchanges = function (req, res, next) {
             if (isObject(takerPays)){
               offerCancel.counter_amount = takerPays.value;
               offerCancel.counter_currency = takerPays.currency;
+              offerCancel.counter_issuer = takerPays.issuer;
             }else{
               offerCancel.counter_amount = (parseFloat(takerPays)/1000000).toString();
               offerCancel.counter_currency = 'ZXC';
+            }
+
+            // filter currency pair
+            if ((offerCancel.base_currency+"+"+offerCancel.base_issuer) != options.base){
+              return
+            }
+            if ((offerCancel.counter_currency+"+"+offerCancel.counter_issuer) != options.counter){
+              return
             }
             
 
