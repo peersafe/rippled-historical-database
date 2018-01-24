@@ -43,7 +43,7 @@ function filterDuplicateQueryParams(req, res, next) {
  */
 
 function Server(options) {
-  var rippleAPI = new ripple.RippleAPI(options.ripple)
+  var rippleAPI = new ripple.ChainsqlLibAPI(options.ripple)
   var app = express()
   var hbase = new Hbase(options.hbase)
   var routes = new Routes(hbase, rippleAPI)
