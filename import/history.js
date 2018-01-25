@@ -7,7 +7,7 @@ var utils    = require('../lib/utils.js');
 var Promise  = require('bluebird');
 var moment   = require('moment');
 
-var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
+var GENESIS_LEDGER = 1; // https://ripple.com/wiki/Genesis_ledger
 var EPOCH_OFFSET   = 946684800;
 
 var HistoricalImport = function () {
@@ -33,7 +33,7 @@ var HistoricalImport = function () {
   var stopIndex;
   var cb;
 
-  hbaseOptions.logLevel = 2;
+  hbaseOptions.logLevel = config.get('logLevel') || 2;
   this.hbase = new Hbase(hbaseOptions);
 
  /**
