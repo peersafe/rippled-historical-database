@@ -23,59 +23,22 @@ AccountExchanges = function (req, res, next) {
     return;
   }
 
-  getOfferCancel(req).then(function(offerCancel) {
-    // success
-    
-    hbase.getAccountExchanges(options, function(err, exchanges) {
-      if (err) {
-        errorResponse(err);
+  hbase.getAccountExchanges(options, function(err, exchanges) {
+    if (err) {
+      errorResponse(err);
 
-      } else {
-        if (exchanges.length == 0 || exchanges.rows.length == 0){
-            exchanges.rows = [];
-            successResponse(exchanges);
-            return ;
-        }
+    } else {
+      exchanges.rows.forEach(function(ex) {
+        ex.executed_time = smoment(parseInt(ex.executed_time)).format();
+        ex.base_amount = ex.base_amount.toString();
+        ex.counter_amount = ex.counter_amount.toString();
+        ex.rate = ex.rate.toPrecision(8);
+        delete ex.rowkey;
+      });
 
-        if (exchanges.rows.length) {
-          exchanges.rows.forEach(function(ex) {
-            ex.executed_time = smoment(parseInt(ex.executed_time)).format();
-            ex.base_amount = ex.base_amount.toString();
-            ex.counter_amount = ex.counter_amount.toString();
-            ex.rate = ex.rate.toPrecision(8);
-            delete ex.rowkey;
-          });
-
-          // do cut
-          var latestTime = exchanges.rows[0].executed_time;
-          var newOfferCancel = [];
-
-          if (typeof(req.query.marker)!="undefined" || req.query.marker === null){
-            offerCancel.forEach(function(of) {
-              if (of.executed_time <= latestTime) {
-                newOfferCancel.push(of);
-              }
-              
-              delete of.rowkey;
-            });
-          }else{
-            newOfferCancel = offerCancel;
-          } 
-        }
-
-
-        exchanges.rows = exchanges.rows.concat(newOfferCancel);
-        exchanges.rows.sort(dateCompare('executed_time'));
-        // exchanges.rows = exchanges.rows.slice(0,req.query.limit);
-
-        successResponse(exchanges);
-      }
-    });
-  }).catch(function(err){
-    //err
-    // console.log(err);
-    errorResponse(err);
-  })
+      successResponse(exchanges);
+    }
+  });
 
  /**
   * prepareOptions
@@ -116,132 +79,6 @@ AccountExchanges = function (req, res, next) {
     return options;
   }
 
-  function isObject(obj) {
-    return Object.prototype.toString.call(obj) === '[object Object]';
-  }
-
-  function isEmptyObject(obj) {  
-    var t;  
-    for (t in obj)  
-        return false;  
-    return true; 
-  } 
-
-  function offerCancelOptions(req) {
-    var options = {
-      account: req.params.address,
-      type: 'OfferCancel',
-      result: '',
-      binary: (/true/i).test(req.query.binary) ? true : false,
-      minSequence: req.query.min_sequence,
-      maxSequence: req.query.max_sequence,
-      marker: '',
-      limit: 1000000,
-      descending: false
-    };
-
-    // query by date
-    options.start = smoment(req.query.start || 0);
-    options.end = smoment(req.query.end);
-
-    return options;
-  }
-
-  function dateCompare(propertyName) {
-    return function(object1, object2) {  
-      var value1 = object1[propertyName];  
-      var value2 = object2[propertyName];  
-      return value2.localeCompare(value1);  
-    }  
-  }
-
-  /**
-  * getOfferCancel
-  * return the transactions which type is OfferCancel
-  */
-
-  function getOfferCancel (req) {
-    return new Promise(function (resolve, reject) {
-      var offerCancelRecord = [];
-      var options = offerCancelOptions(req);
-
-      hbase.getAccountTransactions(options, function(err, resp) {
-        if (err) {
-          // errorResponse(err);
-          console.log(err);
-        } else {
-          if (resp.length == 0 || resp.rows.length == 0){
-            resolve(offerCancelRecord);
-            return ;
-          }
-         
-          resp.rows.forEach(function(ts) {
-            var offerCancel = {
-              base_amount: '',
-              counter_amount: '',
-              rate: '',
-              base_currency: '',
-              base_issuer: '',
-              buyer : ts.tx.Account,
-              counter_currency: '',
-              executed_time : ts.date.replace('+00:00','Z'),
-              ledger_index : ts.ledger_index,
-              offer_sequence : ts.tx.OfferSequence,
-              provider : '',
-              seller : '',
-              taker : ts.tx.Account,
-              tx_hash : ts.hash,
-              tx_type : ts.tx.TransactionType
-            };
-
-            var offerNode ;
-            // get offer node object
-            ts.meta.AffectedNodes.forEach(function(no){
-               if (no.hasOwnProperty('DeletedNode')) {
-                  if (no.DeletedNode.hasOwnProperty('LedgerEntryType') && no.DeletedNode.LedgerEntryType === 'Offer') {
-                    offerNode = no.DeletedNode;
-                    return;
-                  }
-               }
-            });
-
-            if (isEmptyObject(offerNode)) {
-              return;
-            }
-
-           
-            var takerPays = offerNode.FinalFields.TakerPays;
-            var takerGets = offerNode.FinalFields.TakerGets;
-
-            if (isObject(takerGets)){
-              offerCancel.base_amount=takerGets.value;
-              offerCancel.base_currency = takerGets.currency;
-              offerCancel.base_issuer = takerGets.issuer;
-            }else{
-              offerCancel.base_amount= (parseFloat(takerGets)/1000000).toString();
-              offerCancel.base_currency = 'ZXC';
-            }
-
-            if (isObject(takerPays)){
-              offerCancel.counter_amount = takerPays.value;
-              offerCancel.counter_currency = takerPays.currency;
-            }else{
-              offerCancel.counter_amount = (parseFloat(takerPays)/1000000).toString();
-              offerCancel.counter_currency = 'ZXC';
-            }
-            
-
-            offerCancel.rate = (parseFloat(offerCancel.counter_amount)/parseFloat(offerCancel.base_amount)).toPrecision(8);
-
-            delete ts.rowkey;
-            offerCancelRecord.push(offerCancel);
-
-            resolve(offerCancelRecord);
-          });
-        }
-      });
-    })
-  }
  /**
   * errorResponse
   * return an error response
