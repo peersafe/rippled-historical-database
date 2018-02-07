@@ -53,8 +53,8 @@ AccountExchanges = function (req, res, next) {
       limit        : req.query.limit || 200,
       marker       : req.query.marker,
       descending   : (/true/i).test(req.query.descending) ? true : false,
-      start        : smoment(req.query.start || '2013-01-01'),
-      end          : smoment(req.query.end),
+      start        : smoment(req.query.end),
+      end          : smoment(req.query.start || '2013-01-01'),
       format       : (req.query.format || 'json').toLowerCase()
     };
 
