@@ -204,18 +204,29 @@ var HistoricalImport = function () {
       for (var i=0; i<ledgers.length; i++) {
         if (ledgers[i].ledger_index === startIndex - 1) {
           log.info('duplicate ledger index:', ledgers[i].ledger_index);
-          if (cb) cb();
+          var keys = [ledgers[i-1].rowkey, ledgers[i].rowkey];
+          self.hbase.deleteRows({
+            table: 'lu_ledgers_by_index',
+            rowkeys: keys
+          }).then(function(resp) {
+            callback(null, {startIndex:startIndex-1, stopIndex:startIndex-1});
+          });
           return;
-
         } else if (ledgers[i].ledger_index !== startIndex) {
           log.info('missing ledger at:', startIndex);
           log.info("gap ends at:", ledgers[i].ledger_index);
-          callback(null, {startIndex:startIndex, stopIndex:ledgers[i].ledger_index});
+          callback(null, {startIndex:startIndex, stopIndex:ledgers[i].ledger_index-1});
           return;
 
         } else if (ledgerHash && ledgerHash !== ledgers[i].parent_hash) {
           log.info('incorrect parent hash at:', startIndex);
-          callback(null, {startIndex:startIndex-1, stopIndex:startIndex});
+          var keys = [ledgers[i-1].rowkey, ledgers[i].rowkey];
+          self.hbase.deleteRows({
+            table: 'lu_ledgers_by_index',
+            rowkeys: keys
+          }).then(function(resp) {
+            callback(null, {startIndex:startIndex-1, stopIndex:startIndex-1});
+          });
           return;
         }
 
