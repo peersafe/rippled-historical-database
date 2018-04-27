@@ -1,7 +1,57 @@
 #!/bin/bash
 
+
+#check hbase master
+RESTART=`jps |grep HMaster`
+if test "$RESTART" = ""
+then
+    echo "starting hbase master"
+    cd /opt/hbase-1.2.6
+    ./bin/start-hbase.sh
+    sleep 10
+fi
+
+#check hbase thrift
+RESTART=`jps |grep ThriftServer`
+if test "$RESTART" = ""
+then
+    echo "starting hbase thrift"
+    cd /opt/hbase-1.2.6
+    ./bin/hbase-daemon.sh start thrift
+    sleep 2
+fi
+
+#check hbase rest
+RESTART=`jps |grep RESTServer`
+if test "$RESTART" = ""
+then
+    echo "starting hbase rest"
+    cd /opt/hbase-1.2.6
+    ./bin/hbase-daemon.sh start rest
+    sleep 2
+fi
+
+#check nimbus
+RESTART=`jps |grep nimbus`
+if test "$RESTART" = ""
+then
+    echo "starting nimbus"
+    storm nimbus &
+    sleep 10
+fi
+
+#check supervisor
+RESTART=`jps |grep supervisor`
+if test "$RESTART" = ""
+then
+    echo "starting supervisor"
+    storm supervisor &
+    sleep 10
+fi
+
 cd /opt/rippled-historical-database
 
+#check v2live
 RESTART=`find /root/.pm2/logs/v2live-out-1.log -mmin +3`
 
 if test "$RESTART" != ""
@@ -24,7 +74,7 @@ then
 fi
 
 cd storm/local/
-
+#check storm importer
 RESTART=`find ./console.out -mmin +3`
 if test "$RESTART" != ""
 then
