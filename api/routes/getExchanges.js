@@ -18,6 +18,20 @@ var intervals = [
   '1month',
   '1year'
 ]
+var intervalsByMinute = [
+  1,
+  5,
+  15,
+  30,
+  60,
+  120,
+  240,
+  1440,
+  4320,
+  10080,
+  0,
+  0
+]
 var PRECISION = 8
 var hbase
 
@@ -35,6 +49,7 @@ function getExchanges(req, res) {
       descending: (/true/i).test(req.query.descending) ? true : false,
       reduce: (/true/i).test(req.query.reduce) ? true : false,
       autobridged: (/true/i).test(req.query.autobridged) ? true : false,
+      nofill: (/true/i).test(req.query.nofill) ? true : false,
       format: (req.query.format || 'json').toLowerCase(),
       marker: req.query.marker
     }
@@ -124,6 +139,66 @@ function getExchanges(req, res) {
     ex.low = ex.low.toPrecision(PRECISION)
     ex.close = ex.close.toPrecision(PRECISION)
     ex.vwap = ex.vwap.toPrecision(PRECISION)
+  }
+
+  /**
+   * autoFillInterval
+   * return a completed response
+   * @param {Object} exchanges
+   */
+
+  function autoFillInterval(resp) {
+    if (params.nofill || resp.rows.length < 1) {
+      return
+    }
+    var start = resp.rows[0].start
+    var idx = intervals.indexOf(params.interval)
+    var interval = intervalsByMinute[idx]
+    var expectStart
+
+    var ab = 1
+    var offset = 1
+    if (params.descending) {
+      ab = -1
+      offset = 0
+    }
+    
+    for (var i = 1; i < resp.rows.length; i++) {
+      if (i > 1440) {
+        break
+      }
+      if (params.interval == '1month') {
+        expectStart = smoment(start).addByMonth(1 * ab)
+      } else if (params.interval == '1year') {
+        expectStart = smoment(start).addByYear(1 * ab)
+      } else {
+        expectStart = smoment(start).addByMinute(interval * ab)
+      }
+
+      start = resp.rows[i].start
+      if (expectStart != start) {
+        start = expectStart
+        var ex = {
+          base_volume: '0',
+          buy_volume: 0,
+          count: 0,
+          counter_volume: '0',
+          vwap: '0',
+          base_currency: params.base.currency,
+          base_issuer: params.base.issuer,
+          counter_currency: params.counter.currency,
+          counter_issuer: params.counter.issuer
+        }
+        ex.start = expectStart
+        ex.open_time = expectStart
+        ex.close_time = expectStart
+        ex.close = resp.rows[i-offset].close
+        ex.open = ex.close
+        ex.high = ex.close
+        ex.low = ex.close
+        resp.rows.splice(i, 0, ex)
+      }
+    }
   }
 
   /**
@@ -251,6 +326,7 @@ function getExchanges(req, res) {
       } else {
         if (params.interval) {
           resp.rows.forEach(formatInterval)
+          autoFillInterval(resp)
 
         } else {
           resp.rows.forEach(function(ex) {
