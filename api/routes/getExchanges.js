@@ -158,13 +158,52 @@ function getExchanges(req, res) {
 
     var ab = 1
     var offset = 1
+    idx = 0
     if (params.descending) {
       ab = -1
       offset = 0
+
+      while (smoment(start).unix() < params.end.unix()) {
+        if (params.interval == '1month') {
+          expectStart = smoment(start).addByMonth(1)
+        } else if (params.interval == '1year') {
+          expectStart = smoment(start).addByYear(1)
+        } else {
+          expectStart = smoment(start).addByMinute(interval)
+        }
+
+        if (smoment(expectStart).unix() > params.end.unix()) {
+          break
+        }
+
+        start = expectStart
+        var ex = {
+          base_volume: '0',
+          buy_volume: 0,
+          count: 0,
+          counter_volume: '0',
+          vwap: '0',
+          base_currency: params.base.currency,
+          base_issuer: params.base.issuer,
+          counter_currency: params.counter.currency,
+          counter_issuer: params.counter.issuer
+        }
+        ex.start = expectStart
+        ex.open_time = expectStart
+        ex.close_time = expectStart
+        ex.close = resp.rows[0].close
+        ex.open = ex.close
+        ex.high = ex.close
+        ex.low = ex.close
+        resp.rows.splice(0, 0, ex)
+        idx++
+      }
+      
     }
     
-    for (var i = 1; i < resp.rows.length; i++) {
-      if (i > 1440) {
+    for (var i = idx + 1; i < resp.rows.length; i++) {
+      if (i > params.limit) {
+        resp.rows = resp.rows.slice(0, params.limit)
         break
       }
       if (params.interval == '1month') {
