@@ -10,7 +10,7 @@ var Routes = require('./routes')
 var map = require('./apiMap')
 var json2csv = require('nice-json2csv')
 var favicon = require('serve-favicon')
-var ripple = require('chainsql-lib')
+var ripple = require('dac-lib')
 
 /**
  * cacheControl
@@ -43,7 +43,7 @@ function filterDuplicateQueryParams(req, res, next) {
  */
 
 function Server(options) {
-  var rippleAPI = new ripple.ChainsqlLibAPI(options.ripple)
+  var rippleAPI = new ripple.DacLibAPI(options.ripple)
   var app = express()
   var hbase = new Hbase(options.hbase)
   var routes = new Routes(hbase, rippleAPI)

@@ -25,7 +25,7 @@ var getTopologyStatus = function() {
   .then(function(resp) {
     var topology;
     resp.topologies.every(function(t) {
-      if (t.name === 'chainsql-ledger-importer') {
+      if (t.name === 'dac-ledger-importer') {
         topology = t;
         return false;
       }

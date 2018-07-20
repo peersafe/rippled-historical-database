@@ -5,7 +5,7 @@ var log = new Logger({scope: 'capitalization'});
 var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
 var intervals = ['day', 'week', 'month'];
-var validator = require('chainsql-address-codec');
+var validator = require('dac-address-codec');
 var hbase;
 
 var getCapitalization = function (req, res, next) {

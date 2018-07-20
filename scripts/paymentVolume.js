@@ -70,7 +70,7 @@ function handleAggregation(params, done) {
 
         } else {
           currencyList.push({
-            currency: 'ZXC'
+            currency: 'DAC'
           })
 
           resolve(currencyList)
@@ -150,7 +150,7 @@ function handleAggregation(params, done) {
       // get exchanges for each pair
       async.map(data, function(d, asyncCallbackPair) {
 
-        if (d.currency === 'ZXC') {
+        if (d.currency === 'DAC') {
           d.rate = 1
           asyncCallbackPair(null, d)
           return
@@ -158,7 +158,7 @@ function handleAggregation(params, done) {
 
         hbase.getExchangeRate({
           base: {
-            currency: 'ZXC'
+            currency: 'DAC'
           },
           counter: {
             currency: d.currency,
@@ -203,7 +203,7 @@ function handleAggregation(params, done) {
       startTime: smoment(params.start).format(),
       total: total,
       count: count,
-      exchange: {currency: 'ZXC'},
+      exchange: {currency: 'DAC'},
       exchangeRate: 1,
       components: data.filter(function(d) {
         return Boolean(d.converted_amount)

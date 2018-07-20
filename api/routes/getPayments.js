@@ -5,7 +5,7 @@ var log = new Logger({scope : 'payments'});
 var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
 var intervals = ['day', 'week', 'month'];
-var validator = require('chainsql-address-codec');
+var validator = require('dac-address-codec');
 var hbase;
 
 var getPayments = function (req, res, next) {
@@ -46,7 +46,7 @@ var getPayments = function (req, res, next) {
     return;
 
   } else if (options.currency &&
-             options.currency !== 'ZXC' &&
+             options.currency !== 'DAC' &&
             !options.issuer) {
     errorResponse({error: 'issuer is required', code: 400});
     return;

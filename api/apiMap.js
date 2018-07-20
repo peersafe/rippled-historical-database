@@ -87,7 +87,7 @@ function generateMap(url) {
       }, {
         action: 'Get Exchanges',
         route: '/v2/exchanges/{:base}/{:counter}',
-        example: url + '/exchanges/ZXC/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+        example: url + '/exchanges/DAC/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }, {
         action: 'Get Capitalization',
         route: '/v2/capitalization/{:currency+issuer}',
@@ -96,7 +96,7 @@ function generateMap(url) {
       }, {
         action: 'Get Active Accounts',
         route: '/v2/active_accounts/{:base}/{:counter}',
-        example: url + '/active_accounts/ZXC/' +
+        example: url + '/active_accounts/DAC/' +
           'USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }, {
         action: 'Get Exchange Volume',
@@ -115,7 +115,7 @@ function generateMap(url) {
         route: '/v2/network/external_markets',
         example: url + '/network/external_markets?period=3day'
       }, {
-        action: 'Get ZXC Distribution',
+        action: 'Get DAC Distribution',
         route: '/v2/network/xrp_distribution',
         example: url + '/network/xrp_distribution'
       }, {
@@ -177,12 +177,12 @@ function generateMap(url) {
       }, {
         action: 'Get Exchange Rate',
         route: '/v2/exchange_rates/{:base}/{:counter}',
-        example: url + '/exchange_rates/ZXC/' +
+        example: url + '/exchange_rates/DAC/' +
           'USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }, {
         action: 'Normalize Amount',
         route: '/v2/normalize',
-        example: url + '/normalize?amount=2000&currency=ZXC' +
+        example: url + '/normalize?amount=2000&currency=DAC' +
           '&exchange_currency=USD' +
           '&exchange_issuer=rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }, {

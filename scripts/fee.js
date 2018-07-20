@@ -5,7 +5,7 @@ var Parser  = require('../lib/ledgerParser');
 var utils   = require('../lib/utils');
 var Promise = require('bluebird');
 var smoment = require('../lib/smoment');
-var binary = require('chainsql-binary-codec');
+var binary = require('dac-binary-codec');
 var options = config.get('hbase');
 
 options.logLevel = 1;

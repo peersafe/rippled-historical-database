@@ -71,9 +71,9 @@ var AcccountBalanceChanges = function(req, res) {
 
     if (options.counterparty &&
        options.currency &&
-       options.currency.toUpperCase() === 'ZXC') {
+       options.currency.toUpperCase() === 'DAC') {
       return {
-        error: 'counterparty cannot be specified for ZXC',
+        error: 'counterparty cannot be specified for DAC',
         code: 400
       };
     }

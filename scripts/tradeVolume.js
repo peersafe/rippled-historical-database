@@ -129,7 +129,7 @@ function handleAggregation(params, done) {
     markets.forEach(function(market) {
       var swap
 
-      if (market.base.currency === 'ZXC') {
+      if (market.base.currency === 'DAC') {
         swap = market.base
         market.base = market.counter
         market.counter = swap
@@ -179,7 +179,7 @@ function handleAggregation(params, done) {
           data.base = market.base
           data.counter = market.counter
 
-          if (data.counter.currency === 'ZXC') {
+          if (data.counter.currency === 'DAC') {
             data.converted_amount = resp.reduced.counter_volume
             data.rate = resp.reduced.vwap ?
               1 / resp.reduced.vwap : 0
@@ -193,7 +193,7 @@ function handleAggregation(params, done) {
 
   /**
    * getRates
-   * get ZXC conversion rates from the results
+   * get DAC conversion rates from the results
    */
 
   function getRates(markets) {
@@ -204,7 +204,7 @@ function handleAggregation(params, done) {
 
     data.markets.forEach(function(market) {
       var key = market.base.currency + '.' + market.base.issuer
-      if (market.counter.currency === 'ZXC') {
+      if (market.counter.currency === 'DAC') {
         data.rates[key] = market.rate
       }
     })
@@ -214,7 +214,7 @@ function handleAggregation(params, done) {
 
   /**
    * normalize
-   * convert the amounts to ZXC using the rates
+   * convert the amounts to DAC using the rates
    * found.  If we don't have a rate, it wont be included
    */
 
@@ -263,7 +263,7 @@ function handleAggregation(params, done) {
 
     return {
       startTime: params.start.moment.format(),
-      exchange: {currency: 'ZXC'},
+      exchange: {currency: 'DAC'},
       exchangeRate: 1,
       total: total,
       count: count,

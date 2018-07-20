@@ -16,10 +16,10 @@ var inactive = true;
 log.info(('queue threshold: ' + QUEUE_THRESHOLD + '%').red);
 
 /**
- * dropsToZXC
+ * dropsToDAC
  */
 
-function dropsToZXC(d) {
+function dropsToDAC(d) {
   return Number(d) / 1000000;
 }
 
@@ -55,9 +55,9 @@ function getFeeStats() {
         expected_ledger_size: Number(d.result.expected_ledger_size),
         current_queue_size: Number(d.result.current_queue_size),
         pct_max_queue_size: pct.toFixed(2),
-        minimum_fee: dropsToZXC(d.result.drops.minimum_fee),
-        open_ledger_fee: dropsToZXC(d.result.drops.open_ledger_fee),
-        median_fee: dropsToZXC(d.result.drops.median_fee)
+        minimum_fee: dropsToDAC(d.result.drops.minimum_fee),
+        open_ledger_fee: dropsToDAC(d.result.drops.open_ledger_fee),
+        median_fee: dropsToDAC(d.result.drops.median_fee)
       }
     };
   });

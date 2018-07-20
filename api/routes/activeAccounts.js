@@ -31,16 +31,16 @@ function activeAccounts(req, res) {
   } else if (!options.counter.currency) {
     errorResponse({error: 'counter currency is required', code: 400});
     return;
-  } else if (options.base.currency === 'ZXC' && options.base.issuer) {
-    errorResponse({error: 'ZXC cannot have an issuer', code: 400});
+  } else if (options.base.currency === 'DAC' && options.base.issuer) {
+    errorResponse({error: 'DAC cannot have an issuer', code: 400});
     return;
-  } else if (options.counter.currency === 'ZXC' && options.counter.issuer) {
-    errorResponse({error: 'ZXC cannot have an issuer', code: 400});
+  } else if (options.counter.currency === 'DAC' && options.counter.issuer) {
+    errorResponse({error: 'DAC cannot have an issuer', code: 400});
     return;
-  } else if (options.base.currency !== 'ZXC' && !options.base.issuer) {
+  } else if (options.base.currency !== 'DAC' && !options.base.issuer) {
     errorResponse({error: 'base issuer is required', code: 400});
     return;
-  } else if (options.counter.currency !== 'ZXC' && !options.counter.issuer) {
+  } else if (options.counter.currency !== 'DAC' && !options.counter.issuer) {
     errorResponse({error: 'counter issuer is required', code: 400});
     return;
   } else if (periods.indexOf(options.period) === -1) {

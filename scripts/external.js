@@ -28,7 +28,7 @@ function getBTC38(currency) {
 
   // hourly: getTradeTimeLine
   // 'http://www.btc38.com/trade/getTrade5minLine.php' +
-  // '?coinname=ZXC&mk_type=' + currency
+  // '?coinname=DAC&mk_type=' + currency
   var url = 'http://k.sosobtc.com/data/period'
   var symbol = 'btc38xrp' + (currency === 'BTC' ?
       'btcbtc' : currency.toLowerCase())
@@ -52,7 +52,7 @@ function getBTC38(currency) {
         date: smoment(r[0]).format(),
         source: 'btc38.com',
         interval: '5minute',
-        base_currency: 'ZXC',
+        base_currency: 'DAC',
         counter_currency: currency,
         base_volume: r[5],
         open: r[1],
@@ -80,7 +80,7 @@ function getPoloniex(currency) {
   start.moment.subtract(1, 'days')
   var url = 'https://poloniex.com/public?' +
     'command=returnChartData&currencyPair=' +
-     currency + '_ZXC&period=300' +
+     currency + '_DAC&period=300' +
     '&start=' + start.moment.unix() +
     '&end=' + end.moment.unix()
 
@@ -105,7 +105,7 @@ function getPoloniex(currency) {
         date: smoment(r.date).format(),
         source: 'poloniex.com',
         interval: '5minute',
-        base_currency: 'ZXC',
+        base_currency: 'DAC',
         counter_currency: c,
         base_volume: r.quoteVolume,
         counter_volume: r.volume,
@@ -144,7 +144,7 @@ function getJubi() {
         date: smoment(r[0] / 1000).format(),
         source: 'jubi.com',
         interval: '5minute',
-        base_currency: 'ZXC',
+        base_currency: 'DAC',
         counter_currency: 'CNY',
         base_volume: r[1],
         open: r[2],
@@ -165,7 +165,7 @@ function getJubi() {
 
 function getKraken() {
   var url = 'https://api.kraken.com/0/public/OHLC'
-  var pair = 'XZXCXXBT'
+  var pair = 'XDACXXBT'
 
   return request({
     url: url,
@@ -190,7 +190,7 @@ function getKraken() {
         date: smoment(r[0]).format(),
         source: 'kraken.com',
         interval: '5minute',
-        base_currency: 'ZXC',
+        base_currency: 'DAC',
         counter_currency: 'BTC',
         base_volume: Number(r[6]),
         counter_volume: Number(r[6]) / vwap,
@@ -214,7 +214,7 @@ function getKraken() {
 
 function getBittrex() {
   var url = 'https://bittrex.com/api/v1.1/public/getmarkethistory'
-  var pair = 'BTC-ZXC'
+  var pair = 'BTC-DAC'
 
   return request({
     url: url,
@@ -261,7 +261,7 @@ function getBittrex() {
       var row = buckets[key]
       row.source = 'bittrex.com'
       row.interval = '5minute'
-      row.base_currency = 'ZXC'
+      row.base_currency = 'DAC'
       row.counter_currency = 'BTC'
       row.date = key
       row.vwap = row.counter_volume / row.base_volume
@@ -360,13 +360,13 @@ function save(data) {
 
 function savePeriod(period, increment) {
   var markets = [
-    'bittrex.com|ZXC|BTC',
-    'poloniex.com|ZXC|BTC',
-    'poloniex.com|ZXC|USD',
-    'kraken.com|ZXC|BTC',
-    'btc38.com|ZXC|CNY',
-    'btc38.com|ZXC|BTC',
-    'jubi.com|ZXC|CNY'
+    'bittrex.com|DAC|BTC',
+    'poloniex.com|DAC|BTC',
+    'poloniex.com|DAC|USD',
+    'kraken.com|DAC|BTC',
+    'btc38.com|DAC|CNY',
+    'btc38.com|DAC|BTC',
+    'jubi.com|DAC|CNY'
   ]
 
   var tasks = []
@@ -420,7 +420,7 @@ function savePeriod(period, increment) {
     })
 
     console.log('saving: ' + label +
-                ' ' + result.total + ' ZXC')
+                ' ' + result.total + ' DAC')
     return hbase.putRow({
       table: 'agg_metrics',
       rowkey: 'trade_volume|external|live|' + label,

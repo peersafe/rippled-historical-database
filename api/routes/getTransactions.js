@@ -28,7 +28,7 @@ var txResults = [
   'tecINSUF_RESERVE_LINE',
   'tecINSUF_RESERVE_OFFER',
   'tecNO_DST',
-  'tecNO_DST_INSUF_ZXC',
+  'tecNO_DST_INSUF_DAC',
   'tecNO_LINE_INSUF_RESERVE',
   'tecNO_LINE_REDUNDANT',
   'tecPATH_DRY',
