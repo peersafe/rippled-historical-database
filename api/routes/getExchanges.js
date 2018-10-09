@@ -198,9 +198,9 @@ function getExchanges(req, res) {
         resp.rows.splice(0, 0, ex)
         idx++
       }
-      
     }
     
+    start = resp.rows[idx].start
     for (var i = idx + 1; i < resp.rows.length; i++) {
       if (i > params.limit) {
         resp.rows = resp.rows.slice(0, params.limit)
