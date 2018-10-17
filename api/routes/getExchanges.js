@@ -182,7 +182,6 @@ function getExchanges(req, res) {
           buy_volume: 0,
           count: 0,
           counter_volume: '0',
-          vwap: '0',
           base_currency: params.base.currency,
           base_issuer: params.base.issuer,
           counter_currency: params.counter.currency,
@@ -192,6 +191,7 @@ function getExchanges(req, res) {
         ex.open_time = expectStart
         ex.close_time = expectStart
         ex.close = resp.rows[0].close
+        ex.vwap = resp.rows[0].vwap
         ex.open = ex.close
         ex.high = ex.close
         ex.low = ex.close
@@ -222,7 +222,6 @@ function getExchanges(req, res) {
           buy_volume: 0,
           count: 0,
           counter_volume: '0',
-          vwap: '0',
           base_currency: params.base.currency,
           base_issuer: params.base.issuer,
           counter_currency: params.counter.currency,
@@ -232,6 +231,7 @@ function getExchanges(req, res) {
         ex.open_time = expectStart
         ex.close_time = expectStart
         ex.close = resp.rows[i-offset].close
+        ex.vwap = resp.rows[i-offset].vwap
         ex.open = ex.close
         ex.high = ex.close
         ex.low = ex.close
