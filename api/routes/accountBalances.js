@@ -1,12 +1,12 @@
 'use strict';
-
+var config = require('../../config')
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account balances'});
 var request = require('request');
 var smoment = require('../../lib/smoment');
 var rippleAddress = require('ripple-address-codec');
-var rippleAPI;
-var hbase;
+var rippled = require('../../lib/rippled')
+var hbase = require('../../lib/hbase')
 
 var accountBalances = function (req, res, next) {
 
@@ -67,26 +67,43 @@ var accountBalances = function (req, res, next) {
     }
   }
 
+  // if requesting latest ledger,
+  // add leeway to rippled request
+  // since it may not be perfectly
+  // in sync
+  if (!options.ledger_index &&
+      !options.ledger_hash &&
+      !options.closeTime) {
+    options.pad = 5;
+  }
 
   log.info(options.account);
 
-  hbase.getLedger(options, function(err, ledger) {
-    if (err) {
-      errorResponse(err);
-      return;
 
-    } else if (ledger) {
-      options.ledger_index = ledger.ledger_index;
-      options.closeTime = smoment(ledger.close_time).format();
-      options.currency = req.query.currency;
-      options.counterparty = req.query.counterparty || req.query.issuer;
-      options.limit = options.limit;
-      getBalances(options);
 
-    } else {
-      errorResponse('ledger not found');
-    }
-  });
+  options.currency = req.query.currency
+  options.counterparty = req.query.counterparty || req.query.issuer
+  options.limit = options.limit;
+
+  if (options.closeTime) {
+    hbase.getLedger(options, function(err, ledger) {
+      if (err) {
+        errorResponse(err);
+        return;
+
+      } else if (ledger) {
+        options.ledger_index = ledger.ledger_index;
+        options.closeTime = smoment(ledger.close_time).format()
+        getBalances(options)
+
+      } else {
+        errorResponse('ledger not found');
+      }
+    })
+
+  } else {
+    getBalances(options);
+  }
 
   /**
   * getBalances
@@ -95,42 +112,37 @@ var accountBalances = function (req, res, next) {
   */
 
   function getBalances(opts) {
-    var params = {
-      ledgerVersion: opts.ledger_index,
+    rippled.getBalances({
+      account: opts.account,
+      ledger: opts.ledger_index,
+      limit: opts.limit,
       currency: opts.currency,
-      counterparty: opts.counterparty,
-      limit: opts.limit ? Number(opts.limit) : undefined
-    };
-
-    if (!rippleAPI.isConnected()) {
-      errorResponse({
-        code: 500,
-        error: 'rippled connection error.'
-      });
-      rippleAPI.disconnect()
-      .then(function() {
-        return rippleAPI.connect();
-      }).catch(function(e) {
-        log.error(e);
-      });
-      return;
-    }
-
-    rippleAPI.getBalances(opts.account, params)
-    .then(function(balances) {
+      counterparty: opts.counterparty
+    })
+    .then(function(resp) {
       var results = {
         result: 'success'
       };
 
-      results.ledger_index = opts.ledger_index;
+      results.ledger_index = resp.ledger_index;
       results.close_time = opts.closeTime;
       results.limit = opts.limit;
-      results.balances = balances;
+      results.balances = resp.balances;
 
       successResponse(results, opts);
     }).catch(function(e) {
       if (e.message === 'Account not found.') {
-        errorResponse({code:404, error: e.message});
+        errorResponse({
+          code: 404,
+          error: 'account not found'
+        });
+
+      } else if (e.message === 'ledgerNotFound') {
+        errorResponse({
+          code: 400,
+          error: 'the date provided is too old'
+        });
+
       } else {
         errorResponse(e.toString());
       }
@@ -147,7 +159,7 @@ var accountBalances = function (req, res, next) {
     var code = err.code || 500;
     var message = err.error || 'unable to retrieve balances';
 
-    log.error(err.error || err);
+    log.error(err.error || err, code);
     res.status(code).json({
       result: 'error',
       message: message
@@ -170,8 +182,4 @@ var accountBalances = function (req, res, next) {
   }
 };
 
-module.exports = function(db, r) {
-  hbase = db;
-  rippleAPI = r;
-  return accountBalances;
-};
+module.exports = accountBalances

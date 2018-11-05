@@ -74,8 +74,8 @@
     "accounts": [{
       "address": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
       "currencies": {
-        "USD" : { "featured" : true },
-        "EUR" : { "featured" : true },
+        "USD" : { "featured" : false },
+        "EUR" : { "featured" : false },
         "GBP" : { "featured" : false }
       }
     }],
@@ -92,7 +92,7 @@
     "start_date": "2013-06-18",
     "accounts": [{
       "address": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
-      "currencies": {"BTC" : { "featured" : true }}
+      "currencies": {"BTC" : { "featured" : false }}
     }],
     "hotwallets": [
       "rQsAshmCjPsxkYnxY9GnmBTAeEUaePDAie",
@@ -317,10 +317,16 @@
   }, {
     "name": "Rippex",
     "start_date": "2014-09-13",
-    "accounts": [{
-      "address": "rfNZPxoZ5Uaamdp339U9dCLWz2T73nZJZH",
-      "currencies": {"BRL" : { "featured" : true }}
-    }],
+    "accounts": [
+      {
+        "address": "rfNZPxoZ5Uaamdp339U9dCLWz2T73nZJZH",
+        "currencies": {"BRL" : { "featured": true }}
+      },
+      {
+        "address": "rKxKhXZCeSDsbkyB8DVgxpjy5AHubFkMFe",
+        "currencies": {"BTC" : { "featured": true }}
+      }
+    ],
     "hotwallets": ["r37FUji17jCgCZvAUc8m5YqXquwHpgwa9q"],
     "domain": "rippex.net"
   }, {
@@ -367,15 +373,21 @@
     ],
     "domain": "ripula.co.uk"
   }, {
-    "name": "Mr. Ripple",
+    "name": "Mr. Exchange",
     "start_date":"2014-10-05",
     "accounts": [{
       "address": "rB3gZey7VWHYRqJHLoHDEJXJ2pEPNieKiS",
       "currencies": {
         "JPY" : { "featured" : true },
-        "BTC" : { "featured" : false },
-        "LTC" : { "featured" : false },
-        "STR" : { "featured" : false }
+        "BTC" : { "featured" : true },
+        "LTC" : { "featured" : true },
+        "STR" : { "featured" : true },
+        "BCC" : { "featured" : false },
+        "ETH" : { "featured" : true },
+        "ETC" : { "featured" : true },
+        "ADA" : { "featured" : true },
+        "DOG" : { "featured" : true },
+        "REP" : { "featured" : true }
       }
     }],
     "hotwallets": [],
@@ -402,9 +414,21 @@
       }
     },
     {
+      "address": "rchGBxcD1A1C2tdxF6papQYZ8kjRKMYcL",
+      "currencies": {
+        "BTC" : { "featured" : true }
+      }
+    },
+    {
+      "address": "rDAN8tzydyNfnNf2bfUQY6iR96UbpvNsze",
+      "currencies": {
+        "ETC" : { "featured" : true }
+      }
+    },
+    {
       "address": "rckzVpTnKpP4TJ1puQe827bV3X4oYtdTP",
       "currencies": {
-        "REP" : { "featured" : false }
+        "REP" : { "featured" : true }
       }
     }],
     "hotwallets": [
@@ -412,6 +436,16 @@
       "rhdT3DksUegs6SDztyLRaCNP2ukfbHKy5g"
     ],
     "domain": "gatehub.net"
+  }, {
+    "name": "BPG",
+    "start_date":"2016-10-01",
+    "accounts": [{
+      "address": "rcoef87SYMJ58NAFx7fNM5frVknmvHsvJ",
+      "currencies": {
+        "XAU" : { "featured" : true }
+      }
+    }],
+    "hotwallets": []
   }, {
     "name": "EXRP",
     "start_date":"2015-03-16",

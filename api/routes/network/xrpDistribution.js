@@ -4,7 +4,7 @@ var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'metrics'});
 var smoment = require('../../../lib/smoment');
 var utils = require('../../../lib/utils');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 function getXrpDistribution(req, res) {
 
@@ -50,18 +50,26 @@ function getXrpDistribution(req, res) {
     descending: options.descending
   },
   function(err, resp) {
+    const rows = []
 
     if (err) {
       errorResponse(err);
     } else {
 
       resp.rows.forEach(function(r) {
-        r.date = smoment(r.date).format();
-        delete r.rowkey;
-        delete r.currency;
+        rows.push({
+          date: smoment(r.date).format(),
+          total: r.total,
+          distributed: r.distributed,
+          undistributed: r.undistributed,
+          escrowed: r.escrowed
+        })
       });
 
-      successResponse(resp);
+      successResponse({
+        rows: rows,
+        marker: resp.marker
+      });
     }
   });
 
@@ -117,7 +125,4 @@ function getXrpDistribution(req, res) {
   }
 }
 
-module.exports = function(db) {
-  hbase = db;
-  return getXrpDistribution;
-};
+module.exports = getXrpDistribution

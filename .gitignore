@@ -24,8 +24,9 @@ build/Release
 # see https://npmjs.org/doc/faq.html#Should-I-check-my-node_modules-folder-into-git
 node_modules
 
+eslintrc
 .idea
-config/*.config.json
+config/*config.json
 .DS_Store
 storm/target
 storm/local/target

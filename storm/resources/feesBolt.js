@@ -15,17 +15,7 @@ var log = new Logger({
 require('./exception')(log);
 
 function FeesBolt() {
-  var options = config.get('hbase2');
-
-  if (!options) {
-    options = config.get('hbase');
-  }
-
-  options.logLevel = config.get('logLevel');
-  options.logFile  = config.get('logFile');
-
-  this.fees = new Aggregation(options);
-
+  this.fees = new Aggregation();
   BasicBolt.call(this);
 }
 
@@ -38,7 +28,7 @@ FeesBolt.prototype.process = function(tup, done) {
 
   self.fees.handleFeeSummary(feeSummary)
   .catch(function(e) {
-    self.log(e);
+    self.log(e.toString());
   });
 
   //don't wait to ack

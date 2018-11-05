@@ -3,7 +3,7 @@
 var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'topology nodes'});
 var smoment = require('../../../lib/smoment');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 var getLinks = function(req, res) {
   var options = {
@@ -17,6 +17,17 @@ var getLinks = function(req, res) {
       code: 400
     });
     return;
+  }
+
+  var max = smoment()
+  max.moment.subtract(30, 'days')
+
+  if (options.date.moment.diff(max.moment) < 0) {
+    errorResponse({
+      error: 'date must be less than 30 days ago',
+      code: 400
+    })
+    return
   }
 
   log.info(options.date.format())
@@ -76,7 +87,4 @@ var getLinks = function(req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getLinks;
-};
+module.exports = getLinks
