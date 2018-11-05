@@ -4,22 +4,12 @@
 var express = require('express')
 var bodyParser = require('body-parser')
 var compression = require('compression')
-var Hbase = require('../lib/hbase/hbase-client')
 var cors = require('cors')
-var Routes = require('./routes')
+var routes = require('./routes')
 var map = require('./apiMap')
 var json2csv = require('nice-json2csv')
 var favicon = require('serve-favicon')
-var ripple = require('chainsql-lib')
-
-/**
- * cacheControl
- */
-
-function cacheControl(req, res, next) {
-  res.setHeader('Cache-Control', 'max-age=1')
-  next()
-}
+var rateLimitMiddleware = require('../lib/rateLimit').middleware
 
 /**
  * filterDuplicateQueryParams
@@ -43,23 +33,24 @@ function filterDuplicateQueryParams(req, res, next) {
  */
 
 function Server(options) {
-  var rippleAPI = new ripple.ChainsqlLibAPI(options.ripple)
   var app = express()
-  var hbase = new Hbase(options.hbase)
-  var routes = new Routes(hbase, rippleAPI)
+  var cacheControl = ''
   var server
 
-  rippleAPI.connect()
-  .then(function() {
-    console.log('ripple API connected.')
-  })
-  .catch(function(e) {
-    console.log(e)
+  /**
+  * setCacheControl
+  */
+
+  function setCacheControl(req, res, next) {
+    res.setHeader('Cache-Control', cacheControl)
+    next()
+  }
+
+  Object.keys(options.cacheControl || {}).forEach(function(key) {
+    cacheControl += key + '=' + options.cacheControl[key] + ', '
   })
 
-  rippleAPI.on('error', function(errorCode, errorMessage, data) {
-    console.log(errorCode, errorMessage, data)
-  })
+  console.log('CACHE: ' + (cacheControl || 'none set'))
 
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({extended: true}))
@@ -68,17 +59,16 @@ function Server(options) {
   app.use(filterDuplicateQueryParams)
   app.use(favicon(__dirname + '/favicon.png'))
   app.use(compression())
-  app.use(cacheControl)
+  app.use(setCacheControl)
+  app.use(rateLimitMiddleware)
 
   app.get('/v2/health/:aspect?', routes.checkHealth)
   app.get('/v2/gateways/:gateway?', routes.gateways.Gateways)
   app.get('/v2/gateways/:gateway/assets/:filename?', routes.gateways.Assets)
   app.get('/v2/currencies/:currencyAsset?', routes.gateways.Currencies)
-  app.get('/v2/capitalization/:currency', routes.capitalization)
   app.get('/v2/active_accounts/:base/:counter', routes.activeAccounts)
   app.get('/v2/network/exchange_volume', routes.network.exchangeVolume)
   app.get('/v2/network/payment_volume', routes.network.paymentVolume)
-  app.get('/v2/network/issued_value', routes.network.issuedValue)
   app.get('/v2/network/external_markets', routes.network.externalMarkets)
   app.get('/v2/network/xrp_distribution', routes.network.xrpDistribution)
   app.get('/v2/network/top_markets/:date?', routes.network.topMarkets)
@@ -93,6 +83,8 @@ function Server(options) {
   app.get('/v2/network/validators/:pubkey', routes.network.getValidators)
   app.get('/v2/network/validators/:pubkey/validations',
           routes.network.getValidations)
+  app.get('/v2/network/validators/:pubkey/manifests',
+          routes.network.getManifests)
   app.get('/v2/network/validators/:pubkey/reports',
           routes.network.getValidatorReports)
   app.get('/v2/network/validator_reports', routes.network.getValidatorReports)
@@ -111,8 +103,11 @@ function Server(options) {
   app.get('/v2/accounts/:address/transactions/:sequence', routes.accountTxSeq)
   app.get('/v2/accounts/:address/transactions', routes.accountTransactions)
   app.get('/v2/accounts/:address/balances', routes.accountBalances)
-  app.get('/v2/accounts/:address/payments/:date?', routes.accountPayments)
+  app.get('/v2/accounts/:address/payments', routes.accountPayments)
   app.get('/v2/accounts/:address/reports/:date?', routes.accountReports)
+  app.get('/v2/accounts/:address/escrows', routes.accountEscrows)
+  app.get('/v2/accounts/:address/payment_channels',
+          routes.accountPaymentChannels)
   app.get('/v2/accounts/:address/balance_changes', routes.getChanges)
   app.get('/v2/accounts/:address/exchanges', routes.accountExchanges)
   app.get('/v2/accounts/:address/exchanges/:base', routes.accountExchanges)
@@ -130,6 +125,9 @@ function Server(options) {
   app.get('/v2/stats/:family', routes.stats)
   app.get('/v2/stats/:family/:metric', routes.stats)
   app.get('/v2/maintenance/:domain', routes.maintenance)
+  app.get('/v2/estimate', routes.estimate)
+  //app.get('/v2/xrp_index', routes.xrpIndex)
+  //app.get('/v2/xrp_index/ticker', routes.xrpIndexTicker)
 
   // index page
   app.get('/', map.generate)

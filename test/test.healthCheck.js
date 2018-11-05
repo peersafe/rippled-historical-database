@@ -1,23 +1,12 @@
 'use strict';
 
-var config = require('./config');
+var config = require('../config');
 var assert = require('assert');
 var request = require('request');
-var HBase = require('../lib/hbase/hbase-client');
-
+var hbase = require('../lib/hbase');
 var port = config.get('port') || 7111;
 var baseURL = 'http://localhost:' + port + '/v2/health';
-var prefix = config.get('prefix');
 
-var hbaseConfig = config.get('hbase');
-var hbase;
-
-hbaseConfig.prefix = prefix;
-hbaseConfig.max_sockets = 500;
-hbaseConfig.timeout = 60000;
-console.log(hbaseConfig);
-
-hbase = new HBase(hbaseConfig);
 describe('load mock data', function() {
   it('load control', function() {
     return hbase.putRow({
@@ -127,48 +116,6 @@ describe('health check - Importer', function() {
       assert.strictEqual(body.score, 1);
       assert.strictEqual(body.ledger_gap_threshold, 'Infinity');
       assert.strictEqual(body.message, 'last validation gap exceeds threshold');
-      done();
-    });
-  });
-});
-
-describe('health check - Nodes ETL', function() {
-  it('should check health', function(done) {
-    request({
-      url: baseURL + '/nodes_etl'
-    },
-    function(err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(body, '1');
-      done();
-    });
-  });
-
-  it('should check health (verbose)', function(done) {
-    request({
-      url: baseURL + '/nodes_etl?verbose=true',
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(body.score, 1);
-      assert.strictEqual(body.message, 'last imported data exceeds threshold');
-      done();
-    });
-  });
-
-  it('should use custom threshold', function(done) {
-    request({
-      url: baseURL + '/nodes_etl?verbose=true&threshold=Infinity',
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(body.score, 0);
-      assert.strictEqual(body.gap_threshold, 'Infinity');
       done();
     });
   });

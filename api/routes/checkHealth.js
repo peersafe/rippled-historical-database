@@ -3,8 +3,7 @@
 var Logger = require('../../lib/logger')
 var log = new Logger({scope: 'health check'})
 var moment = require('moment')
-
-var hbase
+var hbase = require('../../lib/hbase')
 
 var defaults = {
   api: {
@@ -72,11 +71,10 @@ function checkHealth(req, res) {
    */
 
   function nodeHealthCheck() {
-    hbase.getTopologyInfo()
-    .then(function(info) {
+    hbase.getTopologyNodes()
+    .then(function(data) {
 
-      var parts = info ? info.rowkey.split('_') : undefined
-      var gap = info ? (Date.now() - parts[0]) / 1000 : Infinity
+      var gap = (Date.now() - moment(data.date).unix() * 1000) / 1000;
       var score = gap <= t1 ? 0 : 1
 
       if (verbose) {
@@ -264,7 +262,7 @@ function checkHealth(req, res) {
   } else {
     hbase.getLedger({}, function(err, ledger) {
       var now = Date.now()
-      var gap = ledger ? (now - ledger.close_time * 1000) / 1000 : Infinity
+      var gap = ledger ? (now - ledger.close_time * 1000) / 1000 : 0
       var responseTime = (Date.now() - d) / 1000
 
       if (aspect === 'api') {
@@ -276,7 +274,4 @@ function checkHealth(req, res) {
   }
 }
 
-module.exports = function(db) {
-  hbase = db
-  return checkHealth
-}
+module.exports = checkHealth

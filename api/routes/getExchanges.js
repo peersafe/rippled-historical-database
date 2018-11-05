@@ -4,6 +4,7 @@ var Logger = require('../../lib/logger')
 var log = new Logger({scope: 'exchanges'})
 var smoment = require('../../lib/smoment')
 var utils = require('../../lib/utils')
+var hbase = require('../../lib/hbase')
 var intervals = [
   '1minute',
   '5minute',
@@ -33,7 +34,6 @@ var intervalsByMinute = [
   0
 ]
 var PRECISION = 8
-var hbase
 
 function getExchanges(req, res) {
   var params
@@ -94,10 +94,8 @@ function getExchanges(req, res) {
       return {error: 'invalid limit: ' + options.limit, code: 400}
     } else if (options.reduce && options.interval) {
       return {error: 'cannot use reduce with interval', code: 400}
-    } else if (options.reduce) {
-      options.limit = 10000
-    } else if (options.limit > 1000) {
-      options.limit = 1000
+    } else if (options.limit > 400) {
+      options.limit = 400
     } else if (options.interval &&
                intervals.indexOf(options.interval) === -1) {
       return {error: 'invalid interval: ' + options.interval, code: 400}
@@ -391,7 +389,4 @@ function getExchanges(req, res) {
 }
 
 
-module.exports = function(db) {
-  hbase = db
-  return getExchanges
-}
+module.exports = getExchanges

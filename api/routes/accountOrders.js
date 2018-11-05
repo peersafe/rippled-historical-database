@@ -1,11 +1,12 @@
 'use strict';
 
+var config = require('../../config')
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account orders'});
 var request = require('request');
 var smoment = require('../../lib/smoment');
-var rippleAPI;
-var hbase;
+var rippled = require('../../lib/rippled')
+var hbase = require('../../lib/hbase')
 
 function accountOrders(req, res) {
   var options = {
@@ -70,23 +71,28 @@ function accountOrders(req, res) {
 
   log.info(options.account);
 
-  hbase.getLedger(options, function(err, ledger) {
-    if (err) {
-      errorResponse(err);
-      return;
+  options.currency = req.query.currency;
+  options.limit = options.limit;
 
-    } else if (ledger) {
-      options.ledger_index = ledger.ledger_index;
-      options.closeTime = smoment(ledger.close_time).format();
-      options.currency = req.query.currency;
-      options.counterparty = req.query.counterparty || req.query.issuer;
-      options.limit = options.limit;
-      getOrders(options);
+  if (options.closeTime) {
+    hbase.getLedger(options, function(err, ledger) {
+      if (err) {
+        errorResponse(err);
+        return;
 
-    } else {
-      errorResponse('ledger not found');
-    }
-  });
+      } else if (ledger) {
+        options.ledger_index = ledger.ledger_index;
+        options.closeTime = smoment(ledger.close_time).format()
+        getOrders(options)
+
+      } else {
+        errorResponse('ledger not found');
+      }
+    })
+
+  } else {
+    getOrders(options);
+  }
 
   /**
   * getOrders
@@ -95,40 +101,35 @@ function accountOrders(req, res) {
   */
 
   function getOrders(opts) {
-    var params = {
-      ledgerVersion: opts.ledger_index,
+    rippled.getOrders({
+      account: opts.account,
+      ledger: opts.ledger_index,
       limit: opts.limit
-    };
-
-    if (!rippleAPI.isConnected()) {
-      errorResponse({
-        code: 500,
-        error: 'rippled connection error.'
-      });
-      rippleAPI.disconnect()
-      .then(function() {
-        return rippleAPI.connect();
-      }).catch(function(e) {
-        log.error(e);
-      });
-      return;
-    }
-
-    rippleAPI.getOrders(opts.account, params)
-    .then(function(orders) {
+    })
+    .then(function(resp) {
       var results = {
         result: 'success'
       };
 
-      results.ledger_index = opts.ledger_index;
+      results.ledger_index = resp.ledger_index;
       results.close_time = opts.closeTime;
       results.limit = opts.limit;
-      results.orders = orders;
+      results.orders = resp.orders;
 
       successResponse(results, opts);
     }).catch(function(e) {
       if (e.message === 'Account not found.') {
-        errorResponse({code:404, error: e.message});
+        errorResponse({
+          code: 404,
+          error: 'account not found'
+        });
+
+      } else if (e.message === 'ledgerNotFound') {
+        errorResponse({
+          code: 400,
+          error: 'the date provided is too old'
+        });
+
       } else {
         errorResponse(e.toString());
       }
@@ -144,7 +145,7 @@ function accountOrders(req, res) {
 
   function errorResponse(err) {
     var code = err.code || 500;
-    var message = err.error || 'unable to retrieve balances';
+    var message = err.error || 'unable to retrieve orders';
 
     log.error(err.error || err);
     res.status(code).json({
@@ -168,8 +169,4 @@ function accountOrders(req, res) {
   }
 }
 
-module.exports = function(db, r) {
-  hbase = db;
-  rippleAPI = r;
-  return accountOrders;
-};
+module.exports = accountOrders;

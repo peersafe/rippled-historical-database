@@ -89,11 +89,6 @@ function generateMap(url) {
         route: '/v2/exchanges/{:base}/{:counter}',
         example: url + '/exchanges/ZXC/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }, {
-        action: 'Get Capitalization',
-        route: '/v2/capitalization/{:currency+issuer}',
-        example: url + '/capitalization/' +
-          'USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
-      }, {
         action: 'Get Active Accounts',
         route: '/v2/active_accounts/{:base}/{:counter}',
         example: url + '/active_accounts/ZXC/' +
@@ -106,10 +101,6 @@ function generateMap(url) {
         action: 'Get Payment Volume',
         route: '/v2/network/payment_volume',
         example: url + '/network/payment_volume'
-      }, {
-        action: 'Get Issued Value',
-        route: '/v2/network/issued_value',
-        example: url + '/network/issued_value'
       }, {
         action: 'Get External Market Volume',
         route: '/v2/network/external_markets',
@@ -157,6 +148,11 @@ function generateMap(url) {
         route: '/v2/network/validators/{:pubkey}/validations',
         example: url + '/network/validators/' +
         'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/validations'
+      }, {
+        action: 'Get Validator Manifests',
+        route: '/v2/network/validators/{:pubkey}/manifests',
+        example: url + '/network/validators/' +
+        'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/manifests'
       }, {
         action: 'Get Validator Reports',
         route: '/v2/network/validators/{:pubkey}/reports',

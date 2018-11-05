@@ -1,32 +1,27 @@
 /* eslint max-len:0 */
 'use strict'
 
-var config = require('./config')
+var config = require('../config')
 var assert = require('assert')
 var request = require('request')
 var Promise = require('bluebird')
-const Hbase = require('../lib/hbase/hbase-client')
+var hbase = require('../lib/hbase')
 var smoment = require('../lib/smoment')
 var moment = require('moment')
+const nconf = require('nconf');
 var utils = require('./utils')
 var Validations = require('../lib/validations/validations')
 var mockValidations = require('./mock/validations.json')
-var validations
-
-var hbaseConfig = config.get('hbase')
+var validations = new Validations()
 var port = config.get('port') || 7111
-var prefix = config.get('prefix')
-
-hbaseConfig.prefix = prefix
-validations = new Validations(hbaseConfig)
-
-const hbase = new Hbase(hbaseConfig)
+const valConfig = nconf.file(config.get('validators-config'))
+console.log('val conf', config.get('validators-config'))
 
 describe('handleValidation', function() {
   var tmp_validations
 
   beforeEach(function(done) {
-    tmp_validations = new Validations(hbaseConfig)
+    tmp_validations = new Validations()
     hbase.deleteAllRows({
       table: 'validations_by_ledger'
     }).then(() => {
@@ -270,28 +265,6 @@ describe('handleValidation', function() {
       done()
     })
   })
-
-  it('should require a valid signature', function(done) {
-    tmp_validations.handleValidation({
-      flags: 2147483648,
-      ledger_hash: '41EE7EFCAFB912715D7D92D8C328747996ABFDF95A111667D1032F9334AFD45E',
-      ledger_index: 5788323,
-      load_fee: 256000,
-      signature: '30450221009D9D65ADBD77D7D37DC7F40C7EE3249EBCF3033CE99B502EF376B9ECEB536DC80220564ACF514AA546ECF1CB04A4548CDBB24F6C2940A1DF36BDB0556DD9B64BBDE8',
-      signing_time: 514683328,
-      validation_public_key: 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr'
-    }).catch(err => {
-      assert.strictEqual(err, 'invalid signature')
-      return Promise.delay(500)
-    }).then(() => {
-      return hbase.getAllRows({
-        table: 'validations_by_ledger'
-      })
-    }).then(rows => {
-      assert.strictEqual(rows.length, 0)
-      done()
-    })
-  })
 })
 
 describe('validations import', function() {
@@ -321,16 +294,6 @@ describe('validations import', function() {
       done()
 
     }).catch(function(e) {
-      assert.ifError(e)
-    })
-  })
-
-  it('should update validator domains', function(done) {
-    this.timeout(20000)
-
-    validations.verifyDomains()
-    .then(done)
-    .catch(e => {
       assert.ifError(e)
     })
   })

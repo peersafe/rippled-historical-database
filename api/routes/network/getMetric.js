@@ -4,16 +4,10 @@ var Logger = require('../../../lib/logger')
 var log = new Logger({scope: 'metrics'})
 var smoment = require('../../../lib/smoment')
 var utils = require('../../../lib/utils')
-var hbase
+var hbase = require('../../../lib/hbase')
 var PRECISION = 8
-var intervals = [
-  'day',
-  'week',
-  'month'
-]
 
 var livePeriodsTrade = [
-  'minute',
   'hour',
   'day',
   '3day',
@@ -22,7 +16,6 @@ var livePeriodsTrade = [
 ]
 
 var livePeriods = [
-  'minute',
   'hour',
   'day'
 ]
@@ -35,7 +28,6 @@ function getMetric(metric, req, res) {
 
   var options = {
     metric: metric,
-    interval: req.query.interval,
     live: req.query.live,
     start: req.query.start ? smoment(req.query.start) : null,
     end: req.query.end ? smoment(req.query.end) : null,
@@ -166,48 +158,10 @@ function getMetric(metric, req, res) {
     options.exchange = exchange
   }
 
-  // historical data
-  if (req.query.start && !options.start) {
-    errorResponse({
-      error: 'invalid start date format',
-      code: 400
-    })
-    return
 
-  } else if (req.query.end && !options.end) {
-    errorResponse({
-      error: 'invalid end date format',
-      code: 400
-    })
-    return
-
-  } else if (options.interval &&
-             intervals.indexOf(options.interval) === -1) {
-    errorResponse({
-      error: 'invalid interval - use: ' + intervals.join(', '),
-      code: 400
-    })
-    return
-
-  } else if (options.interval && metric === 'issued_value') {
-    errorResponse({
-      error: 'interval cannot be used',
-      code: 400
-    })
-    return
-
-  } else if (options.start || options.end) {
-    if (!options.start) {
-      options.start = smoment(0)
-    }
-    if (!options.end) {
-      options.end = smoment()
-    }
-
-
-  } else if (options.live &&
-             options.metric === 'trade_volume' &&
-             livePeriodsTrade.indexOf(options.live) === -1) {
+  if (options.live &&
+      options.metric === 'trade_volume' &&
+      livePeriodsTrade.indexOf(options.live) === -1) {
 
     errorResponse({
       error: 'invalid period - use: ' + livePeriodsTrade.join(', '),
@@ -241,7 +195,4 @@ function getMetric(metric, req, res) {
   })
 }
 
-module.exports = function(db) {
-  hbase = db
-  return getMetric
-}
+module.exports = getMetric

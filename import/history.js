@@ -1,21 +1,17 @@
-var config   = require('../config/import.config');
-var Importer = require('../lib/ripple-importer');
+var config   = require('../config');
+var importer = require('../lib/ripple-importer');
 var Logger   = require('../lib/logger');
-var Hbase    = require('../lib/hbase/hbase-client');
+var hbase    = require('../lib/hbase');
 var Parser   = require('../lib/ledgerParser');
 var utils    = require('../lib/utils.js');
 var Promise  = require('bluebird');
 var moment   = require('moment');
 
-var GENESIS_LEDGER = 1; // https://ripple.com/wiki/Genesis_ledger
+var GENESIS_LEDGER = config.get('genesis_ledger') || 1;
 var EPOCH_OFFSET   = 946684800;
 
 var HistoricalImport = function () {
-  this.importer = new Importer({
-    ripple : config.get('ripple'),
-    logLevel: config.get('logLevel') || 0,
-    logFile: config.get('logFile')
-  });
+  this.importer = importer;
 
   this.count    = 0;
   this.total    = 0;
@@ -28,13 +24,9 @@ var HistoricalImport = function () {
     file: config.get('logFile')
   });
 
-  var hbaseOptions = config.get('hbase');
   var self = this;
   var stopIndex;
   var cb;
-
-  hbaseOptions.logLevel = config.get('logLevel') || 2;
-  this.hbase = new Hbase(hbaseOptions);
 
  /**
   * handle ledgers from the importer
@@ -184,7 +176,7 @@ var HistoricalImport = function () {
 
     log.info('validating ledgers:', startIndex, '-', end);
 
-    self.hbase.getLedgersByIndex({
+    hbase.getLedgersByIndex({
       startIndex : startIndex,
       stopIndex  : end,
       descending : false
@@ -205,7 +197,7 @@ var HistoricalImport = function () {
         if (ledgers[i].ledger_index === startIndex - 1) {
           log.info('duplicate ledger index:', ledgers[i].ledger_index);
           var keys = [ledgers[i-1].rowkey, ledgers[i].rowkey];
-          self.hbase.deleteRows({
+          hbase.deleteRows({
             table: 'lu_ledgers_by_index',
             rowkeys: keys
           }).then(function(resp) {
@@ -221,7 +213,7 @@ var HistoricalImport = function () {
         } else if (ledgerHash && ledgerHash !== ledgers[i].parent_hash) {
           log.info('incorrect parent hash at:', startIndex);
           var keys = [ledgers[i-1].rowkey, ledgers[i].rowkey];
-          self.hbase.deleteRows({
+          hbase.deleteRows({
             table: 'lu_ledgers_by_index',
             rowkeys: keys
           }).then(function(resp) {
@@ -255,7 +247,7 @@ var HistoricalImport = function () {
   function saveLedger (ledger, callback) {
     var parsed = Parser.parseLedger(ledger);
 
-    self.hbase.saveParsedData({data:parsed}, function(err, resp) {
+    hbase.saveParsedData({data:parsed}, function(err, resp) {
       if (err) {
         callback('unable to save parsed data for ledger: ' + ledger.ledger_index);
         return;
@@ -263,7 +255,7 @@ var HistoricalImport = function () {
 
       log.info('parsed data saved: ', ledger.ledger_index);
 
-      self.hbase.saveTransactions(parsed.transactions, function(err, resp) {
+      hbase.saveTransactions(parsed.transactions, function(err, resp) {
         if (err) {
           callback('unable to save transactions for ledger: ' + ledger.ledger_index);
           return;
@@ -271,7 +263,7 @@ var HistoricalImport = function () {
 
         log.info(parsed.transactions.length + ' transactions(s) saved: ', ledger.ledger_index);
 
-        self.hbase.saveLedger(parsed.ledger, function(err, resp) {
+        hbase.saveLedger(parsed.ledger, function(err, resp) {
           if (err) {
             log.error(err);
             callback('unable to save ledger: ' + ledger.ledger_index);

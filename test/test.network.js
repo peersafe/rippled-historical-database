@@ -1,6 +1,6 @@
 'use strict'
 
-var config = require('./config')
+var config = require('../config')
 var request = require('request')
 var Promise = require('bluebird')
 var assert = require('assert')
@@ -8,8 +8,7 @@ var moment = require('moment')
 var smoment = require('../lib/smoment')
 var utils = require('./utils')
 
-var HBase = require('../lib/hbase/hbase-client')
-var geolocation = require('../lib/validations/geolocation')
+var hbase = require('../lib/hbase')
 var saveVersions = require('../scripts/saveVersions')
 var mockExchangeVolume = require('./mock/exchange-volume.json')
 var mockExchangeVolumeHour = require('./mock/exchange-volume-live-hour.json')
@@ -19,35 +18,61 @@ var mockIssuedValue = require('./mock/issued-value.json')
 var mockXrpDistribution = require('./mock/xrp-distribution.json')
 var mockTopCurrencies = require('./mock/top-currencies.json')
 var mockTopMarkets = require('./mock/top-markets.json')
-var mockTopologyNodes = require('./mock/topology-nodes.json')
-var mockTopologyLinks = require('./mock/topology-links.json')
-var mockTopologyInfo = require('./mock/topology-info.json')
+var mockCrawl = require('./mock/topology-crawl.json')
 var mockFeeStats = require('./mock/fee-stats.json')
 var mockExternalHour = require('./mock/external-markets-hour.json')
 var mockExternalDay = require('./mock/external-markets-day.json')
 var mockExternal3Day = require('./mock/external-markets-3day.json')
 var mockExternal7Day = require('./mock/external-markets-7day.json')
 var mockExternal30Day = require('./mock/external-markets-30day.json')
-
 var port = config.get('port') || 7111
-var prefix = config.get('prefix')
 
-var hbaseConfig = config.get('hbase')
-var hbase
-var geo
+var now = Date.now()
+var today = smoment(moment(now));
+var old = smoment('2016-03-18T22:31:33Z');
 
-hbaseConfig.prefix = prefix
-hbaseConfig.max_sockets = 500
-hbaseConfig.timeout = 60000
+const formatKey = 'YYYYMMDDHHmmss';
+const timeInfinity = 99999999999999;
+const getInverseTimestamp = date => (timeInfinity - Number(smoment(date).format(formatKey))).toString();
 
-geo = geolocation({
-  hbase: hbaseConfig,
-  table: prefix + 'node_state',
-  columnFamily: 'd'
-})
-
-hbase = new HBase(hbaseConfig)
-
+const geolocation = {
+  n9KcmEKTW3ggFgTjNMVkJwJ5R8RhQZeacYLTVgWFcnwheniS7zGA: {
+    'f:lat': 37.3394,
+    'f:long': -121.895,
+    'f:country': 'United States',
+    'f:region': 'California',
+    'f:city': 'San Jose',
+    'f:postal_code': '95141',
+    'f:country_code': 'US',
+    'f:region_code': 'CA',
+    'f:timezone': 'America/Los_Angeles',
+    'f:isp': 'SoftLayer Technologies Inc.'
+  },
+  n9LKATbwprxwHPuQpJC2oJjkKZXHPaCjHUskDSBgvDTrTWQLnMwr: {
+    'f:lat': 37.751,
+    'f:long': -97.822,
+    'f:country': 'United States',
+    'f:region': undefined,
+    'f:city': undefined,
+    'f:postal_code': undefined,
+    'f:country_code': 'US',
+    'f:region_code': undefined,
+    'f:timezone': undefined,
+    'f:isp': 'SoftLayer Technologies Inc.'
+  },
+  n9MR8WCUhNLtdVTw4Lc4KaKMLHb7pxfYriQVi6SZ9xUvC6Ni2w59: {
+    'f:lat': 45.8696,
+    'f:long': -119.688,
+    'f:country': 'United States',
+    'f:region': 'Oregon',
+    'f:city': 'Boardman',
+    'f:postal_code': '97818',
+    'f:country_code': 'US',
+    'f:region_code': 'OR',
+    'f:timezone': 'America/Los_Angeles',
+    'f:isp': 'Amazon.com, Inc.'
+  }
+}
 /**
  * setup
  */
@@ -154,37 +179,27 @@ describe('setup mock data', function() {
       }))
     })
 
-    mockTopologyNodes.forEach(function(r) {
-      rows.push(hbase.putRow({
-        table: 'crawl_node_stats',
-        rowkey: r.rowkey,
-        columns: r
-      }))
+    rows.push(hbase.putRow({
+      table: 'network_crawls',
+      rowkey: getInverseTimestamp(today),
+      columns: Object.assign({}, mockCrawl, { start: today.format() })
+    }))
 
+    rows.push(hbase.putRow({
+      table: 'network_crawls',
+      rowkey: getInverseTimestamp(old),
+      columns: Object.assign({}, mockCrawl, {
+        start: old.format(),
+        nodes: mockCrawl.nodes.slice(0, 2),
+        connections: mockCrawl.connections.slice(0, 1)
+      })
+    }))
+
+    mockCrawl.nodes.forEach(d => {
       rows.push(hbase.putRow({
         table: 'node_state',
-        rowkey: r.pubkey,
-        columns: {
-          ipp: r.ipp || 'not_present',
-          version: r.version,
-          city: 'San Francisco'
-        }
-      }))
-    })
-
-    mockTopologyLinks.forEach(function(r) {
-      rows.push(hbase.putRow({
-        table: 'connections',
-        rowkey: r.rowkey,
-        columns: r
-      }))
-    })
-
-    mockTopologyInfo.forEach(function(r) {
-      rows.push(hbase.putRow({
-        table: 'crawls',
-        rowkey: r.rowkey,
-        columns: r
+        rowkey: d.pubkey_node,
+        columns: Object.assign({}, d, geolocation[d.pubkey_node])
       }))
     })
 
@@ -402,7 +417,7 @@ describe('network fees', function() {
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 52)
+      assert.strictEqual(body.count, 54)
       body.rows.forEach(function(r) {
         assert.strictEqual(typeof r.avg, 'number')
         assert.strictEqual(typeof r.min, 'number')
@@ -463,7 +478,7 @@ describe('network fees', function() {
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 52)
+      assert.strictEqual(body.count, 54)
       body.rows.forEach(function(r) {
         if (date) {
           assert(date.diff(r.date) >= 0)
@@ -488,7 +503,7 @@ describe('network fees', function() {
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 8)
+      assert.strictEqual(body.count, 10)
       body.rows.forEach(function(r) {
         assert.strictEqual(typeof r.avg, 'number')
         assert.strictEqual(typeof r.min, 'number')
@@ -514,7 +529,7 @@ describe('network fees', function() {
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 5)
+      assert.strictEqual(body.count, 7)
       body.rows.forEach(function(r) {
         assert.strictEqual(typeof r.avg, 'number')
         assert.strictEqual(typeof r.min, 'number')
@@ -865,29 +880,6 @@ describe('network - exchange volume', function() {
     })
   })
 
-  it('get historical exchange volume', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/exchange_volume' +
-        '?start=' + start +
-        '&end=' + end
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 1)
-      assert.strictEqual(body.rows[0].count, 46933)
-      done()
-    })
-  })
-
   it('get exchange volume with exchange currency', function(done) {
     var currency = 'BTC'
     var issuer = 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'
@@ -954,73 +946,6 @@ describe('network - exchange volume', function() {
     })
   })
 
-  it('should error on invalid start date', function(done) {
-    var start = 'x2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/exchange_volume' +
-        '?start=' + start +
-        '&end=' + end
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 400)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message, 'invalid start date format')
-      done()
-    })
-  })
-
-  it('should error on invalid end date', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = 'x2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/exchange_volume' +
-        '?start=' + start +
-        '&end=' + end
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 400)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message, 'invalid end date format')
-      done()
-    })
-  })
-
-  it('should error on invalid interval', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/exchange_volume' +
-        '?start=' + start +
-        '&end=' + end + '&interval=years'
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 400)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message,
-                         'invalid interval - use: day, week, month')
-      done()
-    })
-  })
-
   it('should error on invalid live period', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/exchange_volume?live=week'
@@ -1036,7 +961,7 @@ describe('network - exchange volume', function() {
       assert.strictEqual(body.result, 'error')
       assert.strictEqual(body.message,
                          'invalid period - use: ' +
-                         'minute, hour, day, 3day, 7day, 30day')
+                         'hour, day, 3day, 7day, 30day')
       done()
     })
   })
@@ -1104,92 +1029,6 @@ describe('network - payment volume', function() {
       assert.strictEqual(body.result, 'success')
       assert.strictEqual(body.count, 1)
       assert.strictEqual(body.rows[0].count, 9716)
-      done()
-    })
-  })
-})
-
-
-describe('network - issued value', function() {
-  it('get live issued_value', function(done) {
-    var url = 'http://localhost:' + port +
-        '/v2/network/issued_value'
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 1)
-      assert.strictEqual(body.rows[0].total, '1673555846.5357773')
-      done()
-    })
-  })
-
-
-  it('get historical issued value', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/issued_value' +
-        '?start=' + start +
-        '&end=' + end
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 1)
-      assert.strictEqual(body.rows[0].total, '1673555846.5357773')
-      done()
-    })
-  })
-
-  it('should error on interval provided', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/issued_value' +
-        '?start=' + start +
-        '&end=' + end + '&interval=day'
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 400)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message, 'interval cannot be used')
-      done()
-    })
-  })
-
-  it('should include a link header when marker is present', function(done) {
-    var url = 'http://localhost:' + port +
-        '/v2/network/issued_value?start=2013&limit=1'
-    var linkHeader = '<' + url +
-      '&marker=issued_value|20150114000000>; rel="next"'
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(res.headers.link, linkHeader)
       done()
     })
   })
@@ -1480,16 +1319,6 @@ describe('network - top currencies', function() {
  */
 
 describe('network - topology', function() {
-  it('should update node geolocation', function(done) {
-    this.timeout(15000)
-
-    geo.geolocateNodes()
-    .then(done)
-    .catch(e => {
-      assert.ifError(e)
-    })
-  })
-
   it('should get topology nodes and links', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/topology/'
@@ -1501,9 +1330,8 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.node_count, 9)
-      assert.strictEqual(body.link_count, 5)
+      assert.strictEqual(body.node_count, 3)
+      assert.strictEqual(body.link_count, 3)
       assert.strictEqual(body.nodes[0].city, undefined)
       done()
     })
@@ -1520,10 +1348,9 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.node_count, 9)
-      assert.strictEqual(body.link_count, 5)
-      assert.strictEqual(body.nodes[0].city, 'San Francisco')
+      assert.strictEqual(body.node_count, 3)
+      assert.strictEqual(body.link_count, 3)
+      assert.strictEqual(body.nodes[0].country, 'United States')
       done()
     })
   })
@@ -1539,8 +1366,7 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.count, 9)
+      assert.strictEqual(body.count, 3)
       assert.strictEqual(body.nodes[0].city, undefined)
       done()
     })
@@ -1557,9 +1383,8 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.count, 9)
-      assert.strictEqual(body.nodes[0].city, 'San Francisco')
+      assert.strictEqual(body.count, 3)
+      assert.strictEqual(body.nodes[0].country, 'United States')
       done()
     })
   })
@@ -1575,14 +1400,13 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.count, 5)
+      assert.strictEqual(body.count, 3)
       done()
     })
   })
 
   it('should get a single topology node', function(done) {
-    var pubkey = 'n94Extku8HiQVY8fcgxeot4bY7JqK2pNYfmdnhgf6UbcmgucHFY8'
+    var pubkey = 'n9KcmEKTW3ggFgTjNMVkJwJ5R8RhQZeacYLTVgWFcnwheniS7zGA'
     var url = 'http://localhost:' + port +
         '/v2/network/topology/nodes/' + pubkey
 
@@ -1594,14 +1418,15 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(body.node_public_key, pubkey)
-      assert.strictEqual(body.city, 'San Francisco')
+      assert.strictEqual(body.city, 'San Jose')
       done()
     })
   })
 
   it('should get topology by date', function(done) {
     var url = 'http://localhost:' + port +
-        '/v2/network/topology?date=2016-03-16'
+        '/v2/network/topology?date=' +
+        moment().subtract(1, 'day').format('YYYY-MM-DD')
 
     request({
       url: url,
@@ -1610,16 +1435,17 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-15T23:59:54Z')
-      assert.strictEqual(body.node_count, 7)
-      assert.strictEqual(body.link_count, 11)
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
+      assert.strictEqual(body.node_count, 2)
+      assert.strictEqual(body.link_count, 1)
       done()
     })
   })
 
   it('should get topology nodes by date', function(done) {
     var url = 'http://localhost:' + port +
-        '/v2/network/topology/nodes?date=2016-03-16'
+        '/v2/network/topology/nodes?date=' +
+        moment().subtract(1, 'day').format('YYYY-MM-DD')
 
     request({
       url: url,
@@ -1628,15 +1454,16 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-15T23:59:54Z')
-      assert.strictEqual(body.count, 7)
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
+      assert.strictEqual(body.count, 2)
       done()
     })
   })
 
   it('should get topology links by date', function(done) {
     var url = 'http://localhost:' + port +
-        '/v2/network/topology/links?date=2016-03-16'
+        '/v2/network/topology/links?date=' +
+        moment().subtract(1, 'day').format('YYYY-MM-DD')
 
     request({
       url: url,
@@ -1645,8 +1472,8 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-15T23:59:54Z')
-      assert.strictEqual(body.count, 11)
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
+      assert.strictEqual(body.count, 1)
       done()
     })
   })
@@ -1670,6 +1497,25 @@ describe('network - topology', function() {
     })
   })
 
+  it('should error on date over 30 days', function(done) {
+    var date = moment.utc().subtract(31, 'days').format('YYYY-MM-DD')
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology?date=' + date
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 400)
+      assert.strictEqual(typeof body, 'object')
+      assert.strictEqual(body.result, 'error')
+      assert.strictEqual(body.message, 'date must be less than 30 days ago')
+      done()
+    })
+  })
+
   it('should error on invalid date', function(done) {
     var date = 'zzz2015-01-14'
     var url = 'http://localhost:' + port +
@@ -1685,6 +1531,25 @@ describe('network - topology', function() {
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'error')
       assert.strictEqual(body.message, 'invalid date format')
+      done()
+    })
+  })
+
+  it('should error on date over 30 days', function(done) {
+    var date = moment.utc().subtract(31, 'days').format('YYYY-MM-DD')
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/nodes?date=' + date
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 400)
+      assert.strictEqual(typeof body, 'object')
+      assert.strictEqual(body.result, 'error')
+      assert.strictEqual(body.message, 'date must be less than 30 days ago')
       done()
     })
   })
@@ -1708,6 +1573,25 @@ describe('network - topology', function() {
     })
   })
 
+  it('should error on date over 30 days', function(done) {
+    var date = moment.utc().subtract(31, 'days').format('YYYY-MM-DD')
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/links?date=' + date
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 400)
+      assert.strictEqual(typeof body, 'object')
+      assert.strictEqual(body.result, 'error')
+      assert.strictEqual(body.message, 'date must be less than 30 days ago')
+      done()
+    })
+  })
+
   it('should get get topology nodes in CSV format', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/topology/nodes?format=csv'
@@ -1719,7 +1603,7 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(res.headers['content-disposition'],
-        'attachment; filename=topology nodes - 2016-03-18T22:31:33Z.csv')
+        'attachment; filename=topology nodes - ' + today.format() + '.csv')
       done()
     })
   })
@@ -1735,8 +1619,53 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(res.headers['content-disposition'],
-        'attachment; filename=topology links - 2016-03-18T22:31:33Z.csv')
+        'attachment; filename=topology links - ' + today.format() + '.csv')
       done()
     })
   })
 })
+
+describe('health check - Nodes ETL', function() {
+  const baseURL = 'http://localhost:' + port + '/v2/health';
+
+  it('should check health', function(done) {
+    request({
+      url: baseURL + '/nodes_etl'
+    },
+    function(err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body, '0');
+      done();
+    });
+  });
+
+  it('should check health (verbose)', function(done) {
+    request({
+      url: baseURL + '/nodes_etl?verbose=true',
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.score, 0);
+      assert.strictEqual(body.message, undefined);
+      done();
+    });
+  });
+
+  it('should use custom threshold', function(done) {
+    request({
+      url: baseURL + '/nodes_etl?verbose=true&threshold=Infinity',
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.score, 0);
+      assert.strictEqual(body.gap_threshold, 'Infinity');
+      done();
+    });
+  });
+});
+
