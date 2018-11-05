@@ -1,12 +1,11 @@
 'use strict'
 
-var Logger = require('../../lib/logger');
-var log = new Logger({scope : 'payments'});
-var smoment = require('../../lib/smoment');
-var utils = require('../../lib/utils');
-var validator = require('chainsql-address-codec');
+var Logger = require('../../lib/logger')
+var log = new Logger({scope: 'payments'})
+var smoment = require('../../lib/smoment')
+var utils = require('../../lib/utils')
+var validator = require('chainsql-address-codec')
 var hbase = require('../../lib/hbase')
-var hbase;
 
 function getPayments(req, res) {
 
