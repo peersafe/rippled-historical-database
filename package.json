@@ -42,7 +42,7 @@
     "request-promise": "^2.0.0",
     "chainsql-address-codec": "^2.0.3",
     "chainsql-binary-codec": "^0.1.35",
-    "chainsql-lib": "^0.17.39",
+    "chainsql-lib": "^0.17.40",
     "chainsql-lib-transactionparser": "^0.6.1",
     "serve-favicon": "^2.3.0",
     "sjcl": "^1.0.3",
