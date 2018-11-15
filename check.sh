@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export PATH=$PATH:/opt/apache-storm-0.9.3/bin
 
 #check hbase master
 RESTART=`jps |grep HMaster`
