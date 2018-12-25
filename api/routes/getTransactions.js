@@ -22,7 +22,11 @@ var txTypes = [
   'SignerListSet',
   'PaymentChannelCreate',
   'PaymentChannelFund',
-  'PaymentChannelClaim'
+  'PaymentChannelClaim',
+  'Contract',
+  'TableListSet',
+  'SQLStatement',
+  'SQLTransaction'
 ];
 
 var txResults = [
