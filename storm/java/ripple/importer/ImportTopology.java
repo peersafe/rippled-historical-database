@@ -66,7 +66,7 @@ public class ImportTopology {
 
     } else {
 
-      conf.setDebug(true);
+      conf.setDebug(false);
       LocalCluster cluster = new LocalCluster();
       cluster.submitTopology("ledger-import", conf, builder.createTopology());
     }

@@ -161,6 +161,18 @@ function getExchanges(req, res) {
       ab = -1
       offset = 0
 
+      if (params.interval == '1month') {
+        expectStart = params.end.subtractByMonth(params.limit)
+      } else if (params.interval == '1year') {
+        expectStart = params.end.subtractByYear(params.limit)
+      } else {
+        expectStart = params.end.subtractByMinute(params.limit)
+      }
+
+      if (smoment(expectStart).unix() > smoment(start).unix()) {
+        start = expectStart
+      }
+
       while (smoment(start).unix() < params.end.unix()) {
         if (params.interval == '1month') {
           expectStart = smoment(start).addByMonth(1)

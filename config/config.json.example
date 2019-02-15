@@ -1,7 +1,7 @@
 {
   "port": 7111,
   "logLevel": 2,
-  "logFile": null,
+  "logFile": "/tmp/v2api.log",
   "genesis_ledger": 1,
   "hbase" : {
     "logLevel" : 2,
