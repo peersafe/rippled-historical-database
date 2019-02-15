@@ -162,11 +162,26 @@ function getExchanges(req, res) {
       offset = 0
 
       if (params.interval == '1month') {
-        expectStart = params.end.subtractByMonth(params.limit)
+        expectStart = utils.getAlignedTime(params.end.subtractByMonth(params.limit), 'mon', 1)
       } else if (params.interval == '1year') {
-        expectStart = params.end.subtractByYear(params.limit)
+        expectStart = utils.getAlignedTime(params.end.subtractByYear(params.limit), 'yea', 1)
       } else {
-        expectStart = params.end.subtractByMinute(params.limit)
+        expectStart = params.end.subtractByMinute(params.limit * interval)
+        if (params.interval === '7day') {
+          expectStart = utils.getAlignedTime(expectStart, 'day', 7)
+        } else if (params.interval === '3day') {
+          expectStart = utils.getAlignedTime(expectStart, 'day', 3)
+        } else if (params.interval === '1day') {
+          expectStart = utils.getAlignedTime(expectStart, 'day', 1)
+        } else if (params.interval === '4hour') {
+          expectStart = utils.getAlignedTime(expectStart, 'hou', 4)
+        } else if (params.interval === '2hour') {
+          expectStart = utils.getAlignedTime(expectStart, 'hou', 2)
+        } else if (params.interval === '1hour') {
+          expectStart = utils.getAlignedTime(expectStart, 'hou', 1)
+        } else {
+          expectStart = utils.getAlignedTime(expectStart, 'min', interval)
+        }
       }
 
       if (smoment(expectStart).unix() > smoment(start).unix()) {
