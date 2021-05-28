@@ -10,7 +10,7 @@ var log = new Logger({
   file: config.get('logFile')
 });
 
-
+hbase.initPeakInfo();
 //start import stream
 importer.liveStream();
 

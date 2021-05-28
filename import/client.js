@@ -14,8 +14,13 @@ var Client = function () {
   var hbaseOptions = config.get('hbase');
   hbaseOptions.logLevel = config.get('logLevel') || 2;
 
+  self.initPeakInfo = function() {
+      hbase.initPeakInfo();
+  }
+
   self.saveLedger = function (ledger, callback) {
 
+    log.info("raw ledger:", JSON.stringify(ledger));
     var parsed = Parser.parseLedger(ledger);
 
     hbase.saveParsedData({data:parsed}, function(err, resp) {

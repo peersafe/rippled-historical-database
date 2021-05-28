@@ -42,6 +42,7 @@ var getLedger = function (req, res, next) {
     var options = {
       ledger_index: req.query.ledger_index,
       ledger_hash: req.query.ledger_hash,
+      peak: (/true/i).test(req.query.peak) ? true : false,
       binary: (/true/i).test(req.query.binary) ? true : false,
       expand: (/true/i).test(req.query.expand) ? true : false,
       transactions: (/true/i).test(req.query.transactions) ? true : false
