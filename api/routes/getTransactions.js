@@ -72,6 +72,7 @@ var getTransactions = function (req, res, next) {
     tx_hash: req.params.tx_hash,
     binary: (/true/i).test(req.query.binary) ? true : false,
     descending: (/true/i).test(req.query.descending) ? true : false,
+    onlyCount: (/true/i).test(req.query.onlyCount) ? true: false,
     type: req.query.type,
     result: req.query.result,
     marker: req.query.marker,
@@ -192,7 +193,11 @@ var getTransactions = function (req, res, next) {
       utils.addLinkHeader(req, res, resp.marker);
     }
 
-    if (resp.rows) {
+    if (options.onlyCount && resp.rows.length > 0)
+    {
+        result.count = resp.rows[0];
+    }
+    else if (!options.onlyCount && resp.rows) {
       result.count = resp.rows.length;
       result.marker = resp.marker;
       result.transactions = resp.rows;

@@ -2,7 +2,7 @@
 
 var packageJSON = require('../package.json')
 function generateMap(url) {
-  var repo = 'https://github.com/ripple/rippled-historical-database'
+  var repo = 'https://github.com/peersafe/rippled-historical-database'
   return {
     'name': packageJSON.name,
     'version': packageJSON.version,
@@ -13,60 +13,60 @@ function generateMap(url) {
         action: 'Get Account Transactions',
         route: '/v2/accounts/{:address}/transactions',
         example: url + '/accounts/' +
-          'r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/transactions'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/transactions'
       }, {
         action: 'Get Account Transactions By Sequence',
         route: '/v2/accounts/{:address}/transactions/{:sequence}',
         example: url + '/accounts/' +
-          'r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/transactions/112'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/transactions/112'
       }, {
         action: 'Get Account Payments',
         route: '/v2/accounts/{:address}/payments',
         example: url + '/accounts/' +
-          'r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/payments'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/payments'
       }, {
         action: 'Get Account Exchanges',
         route: '/v2/accounts/{:address}/exchanges',
         example: url + '/accounts/' +
-          'rQaxmmRMasgt1edq8pfJKCfbkEiSp5FqXJ/exchanges'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/exchanges'
       }, {
         action: 'Get Account Balance Changes',
         route: '/v2/accounts/{:address}/balance_changes',
         example: url + '/accounts/' +
-          'r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/balance_changes'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/balance_changes'
       }, {
         action: 'Get Account Reports',
         route: '/v2/accounts/{:address}/reports/{:date}',
         example: url + '/accounts/' +
-          'r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/reports/2013-02-01'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/reports/2013-02-01'
       }, {
         action: 'Get Account Balances',
         route: '/v2/accounts/{:address}/balances',
         example: url + '/accounts/' +
-          'r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/balances'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/balances'
       }, {
         action: 'Get Account Orders',
         route: '/v2/accounts/{:address}/orders',
         example: url + '/accounts/' +
-          'r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/orders'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/orders'
       }, {
         action: 'Get Account Transaction Stats',
         route: '/v2/accounts/{:address}/stats/transactions',
         example: url + '/accounts/' +
-          'r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/stats/transactions'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/stats/transactions'
       }, {
         action: 'Get Account Value Stats',
         route: '/v2/accounts/{:address}/stats/value',
         example: url + '/accounts/' +
-          'r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/stats/value'
+          'zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X/stats/value'
       }, {
         action: 'Get Account',
         route: '/v2/accounts/{:address}',
-        example: url + '/accounts/rB31eWvkfKBAu6FDD9zgnzT4RwSfXGcqPm'
+        example: url + '/accounts/zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X'
       }, {
         action: 'Get Accounts',
         route: '/v2/accounts',
-        example: url + '/accounts?parent=r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV'
+        example: url + '/accounts?parent=zx69LN1BpC8Us1FfMxqLyih51N6MWEjT5X'
       }, {
         action: 'Get Ledgers',
         route: '/v2/ledgers/{:ledger_hash/ledger_index/date}',
@@ -83,16 +83,16 @@ function generateMap(url) {
       }, {
         action: 'Get Payments',
         route: '/v2/payments/{:currency+issuer}',
-        example: url + '/payments/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+        example: url + '/payments/USD+zKainPuXzH9HtZosLuEuMsFV3Rh8eBSf4L'
       }, {
         action: 'Get Exchanges',
         route: '/v2/exchanges/{:base}/{:counter}',
-        example: url + '/exchanges/ZXC/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+        example: url + '/exchanges/ZXC/USD+zKainPuXzH9HtZosLuEuMsFV3Rh8eBSf4L'
       }, {
         action: 'Get Active Accounts',
         route: '/v2/active_accounts/{:base}/{:counter}',
         example: url + '/active_accounts/ZXC/' +
-          'USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+          'USD+zKainPuXzH9HtZosLuEuMsFV3Rh8eBSf4L'
       }, {
         action: 'Get Exchange Volume',
         route: '/v2/network/exchange_volume',
@@ -167,20 +167,20 @@ function generateMap(url) {
         route: '/v2/network/validations',
         example: url + '/network/validations'
       }, {
-        action: 'Get Rippled Versions',
-        route: '/v2/network/rippled_versions',
-        example: url + '/network/rippled_versions'
+        action: 'Get Chainsqld Versions',
+        route: '/v2/network/chainsqld_versions',
+        example: url + '/network/chainsqld_versions'
       }, {
         action: 'Get Exchange Rate',
         route: '/v2/exchange_rates/{:base}/{:counter}',
         example: url + '/exchange_rates/ZXC/' +
-          'USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+          'USD+zKainPuXzH9HtZosLuEuMsFV3Rh8eBSf4L'
       }, {
         action: 'Normalize Amount',
         route: '/v2/normalize',
         example: url + '/normalize?amount=2000&currency=ZXC' +
           '&exchange_currency=USD' +
-          '&exchange_issuer=rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+          '&exchange_issuer=zKainPuXzH9HtZosLuEuMsFV3Rh8eBSf4L'
       }, {
         action: 'Get Daily Summary',
         route: '/v2/reports/{:date}',

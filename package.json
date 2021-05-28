@@ -1,10 +1,10 @@
 {
-  "name": "rippled-historical-database",
-  "version": "2.3.7",
-  "description": "SQL database storing historical data from Rippled.",
+  "name": "chainsqld-historical-database",
+  "version": "2.3.8",
+  "description": "SQL database storing historical data from Chainsqld.",
   "repository": {
     "type": "git",
-    "url": "git://github.com/ripple/rippled-historical-database.git"
+    "url": "git://github.com/peersafe/rippled-historical-database.git"
   },
   "scripts": {
     "postinstall": "node install.js",
