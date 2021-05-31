@@ -1,6 +1,6 @@
 # chainsql V2 搭建
 ## 依赖环境版本
-
+只可比下面的版本高，不可低
 ```
 peersafe@root:~/v2/rippled-historical-database$ node --version
 v10.24.1
@@ -121,9 +121,9 @@ bin/hbase-daemon.sh start thrift -f -p <port>
 6. pm2 启动 import/backfill.js
 
 
-**以下为历史信息，仅作为参考**
+# **以下为历史信息，仅作为参考**
 
-~~# ripple V2 api 环境搭建~~
+# ripple V2 api 环境搭建
 
 ## 1、项目源码
 
