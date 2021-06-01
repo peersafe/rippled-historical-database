@@ -103,7 +103,7 @@ var getTransactions = function (req, res, next) {
 
   // transactions by time
   } else {
-    options.start = smoment(req.query.start || '2013-01-01');
+    options.start = smoment(req.query.start || '2017-01-01');
     options.end = smoment(req.query.end);
 
     if (!options.start) {
@@ -196,6 +196,8 @@ var getTransactions = function (req, res, next) {
     if (options.onlyCount && resp.rows.length > 0)
     {
         result.count = resp.rows[0];
+        result.start = resp.start;
+        result.end = resp.end;
     }
     else if (!options.onlyCount && resp.rows) {
       result.count = resp.rows.length;
