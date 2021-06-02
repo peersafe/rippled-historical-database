@@ -131,6 +131,7 @@ Optionally, you can provide the following query parameters:
 | `transactions` | Boolean | If `true`, include the identifying hashes of all transactions that are part of this ledger. |
 | `binary`       | Boolean | If `true`, include all transactions from this ledger as hex-formatted binary data. (If provided, overrides `transactions`.) |
 | `expand`       | Boolean | If `true`, include all transactions from this ledger as nested JSON objects. (If provided, overrides `binary` and `transactions`.) |
+| `peak`         | Boolean | If `true`, only return the peak transaction num in someone ledger in history.|
 
 #### Response Format
 
@@ -140,6 +141,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 |:---------|:---------------------------------|:-------------------------------|
 | `result` | String                           | The value `success` indicates that this is a successful response. |
 | `ledger` | [Ledger object](#ledger-objects) | The requested ledger.          |
+| `ledger` | include peak_ledger_index and peak_tx_num | If peak option is true.|
 
 #### Example
 
@@ -466,6 +468,7 @@ Optionally, you can provide the following query parameters:
 | `binary`     | Boolean                | If `true`, return transactions in binary form. The default is `false`. |
 | `limit`      | Integer                | Maximum results per page. The default is 20. Cannot be more than 100. |
 | `marker`     | String                 | [Pagination](#pagination) marker from a previous response. |
+| `onlyCount`  | Boolean                | Only return transaction num with other option. |
 
 #### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
@@ -475,7 +478,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `result`       | String                           | The value `success` indicates that this is a successful response. |
 | `count`        | Integer                          | Number of Transactions returned. |
 | `marker`       | String                           | (May be omitted) Pagination marker. |
-| `transactions` | Array of [Transaction objects][] | The requested transactions. |
+| `transactions` | Array of [Transaction objects][] | The requested transactions. If onlyCount option present, transactions will be omitted |
 
 [Transaction objects]: #transaction-objects
 
