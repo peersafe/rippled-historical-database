@@ -5466,6 +5466,8 @@ Version 2 of the Historical Database requires HBase instead of [PostgreSQL](http
 
 ### Installation Process
 
+**Can find detail installation process from buildENV.md in repository root dir.**
+
 To install the Data API v2:
 
 1. Install HBase. For production use, configure it in distributed mode.

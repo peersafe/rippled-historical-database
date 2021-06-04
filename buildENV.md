@@ -12,7 +12,7 @@ OpenJDK Runtime Environment (build 1.8.0_292-8u292-b10-0ubuntu1~18.04-b10)
 OpenJDK 64-Bit Server VM (build 25.292-b10, mixed mode)
 ```
 
-hbase使用hbase-2.3.5-bin.tar.gz
+hbase使用[hbase-2.3.5-bin.tar.gz](https://downloads.apache.org/hbase/2.3.5/hbase-2.3.5-bin.tar.gz)
 
 ## hbase及v2配置
 ### hbase配置
@@ -102,14 +102,20 @@ rippled-historical-database配置信息：
 ```
 ## 启动步骤
 ### 启动hbase
-bin/start-hbase.sh
+- 启动hbase master
 
-启动hbase rest server
-bin/hbase-daemon.sh start rest -p <port>
+> bin/start-hbase.sh
+
+- 启动hbase rest server
+
+> bin/hbase-daemon.sh start rest -p \<port>
+
 【-p】选项可以不加，默认端口8080
 
-启动hbase thrift server
-bin/hbase-daemon.sh start thrift -f -p <port>
+- 启动hbase thrift server
+
+> bin/hbase-daemon.sh start thrift -f -p \<port>
+
 【-p】选项可以不加，默认端口9090
 
 ### 启动V2
